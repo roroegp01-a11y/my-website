@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top-up Price List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ea;
+            --secondary: #ff0050;
+            --text: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Noto Sans Lao', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #141e30);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden; /* ປ້ອງກັນ scrollbar ລວງຂວາງ */
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ============================
+           ❄️ ໂຊນ CSS ສຳລັບຫິມະ ❄️
+        ============================ */
+        .snowflake {
+            position: fixed;
+            top: -20px;
+            color: #fff;
+            font-size: 1em;
+            user-select: none;
+            pointer-events: none; /* ສຳຄັນ: ບໍ່ໃຫ້ບັງການກົດປຸ່ມ */
+            z-index: 9999; /* ໃຫ້ຢູ່ຊັ້ນເທິງສຸດ */
+            text-shadow: 0 0 5px #00f2ea; /* ເພີ່ມແສງເງົາໃຫ້ເຂົ້າກັບຕີມ */
+            will-change: transform;
+            animation-name: fall, drift;
+            animation-timing-function: linear, ease-in-out;
+            animation-iteration-count: infinite, infinite;
+        }
+
+        @keyframes fall {
+            0% { top: -20px; }
+            100% { top: 105vh; } /* ໃຫ້ຕົກກາຍຈໍລົງໄປ */
+        }
+
+        @keyframes drift {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(50px); } /* ປິວໄປທາງຂວາ */
+            100% { transform: translateX(0); }
+        }
+
+        /* ============================
+           ຈົບໂຊນຫິມະ
+        ============================ */
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            padding-bottom: 20px;
+            position: relative; /* ເພື່ອໃຫ້ z-index ທຳງານຖືກຕ້ອງ */
+            z-index: 10; /* ໃຫ້ container ຢູ່ເໜືອພື້ນຫຼັງ ແຕ່ໃຕ້ຫິມະ */
+        }
+        
+        .header {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            background: linear-gradient(to right, #00f2ea, #ff0050);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            padding: 10px 20px;
+            overflow-x: auto;
+            scrollbar-width: none; 
+        }
+        .tab-container::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: #aaa;
+            padding: 10px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Noto Sans Lao';
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(45deg, var(--primary), #00a8ff);
+            color: #000;
+            border-color: transparent;
+            font-weight: 800;
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+        }
+
+        .content-area { padding: 20px; min-height: 400px; }
+
+        .fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .rules-box {
+            background: rgba(255, 200, 0, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            border-left: 4px solid #ffd700;
+            color: #ffd700;
+        }
+        .rules-box li { margin-bottom: 5px; list-style: none; }
+
+        h2 {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-top: 25px;
+            padding-left: 10px;
+            border-left: 4px solid var(--primary);
+            text-transform: uppercase;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            background: var(--glass-bg);
+            border-radius: 12px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .price-row:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .item-name { font-weight: 600; font-size: 1rem; }
+        
+        .item-price {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .icon-box {
+            width: 32px; height: 32px; background: #fff; color: #000; border-radius: 8px;
+            display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold;
+        }
+        
+        .footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>⚡ ເລດໂຍນເກມຕ່າງໆຮ້ານລຸງແມັກ ⚡</h1>
+        <p style="margin:5px 0 0; opacity:0.7;">ຕາຕະລາງລາຄາອັບເດດລ່າສຸດ</p>
+    </div>
+
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="switchGame('roblox')">ROBLOX</button>
+        <button class="tab-btn" onclick="switchGame('freefire')">FREE FIRE</button>
+        <button class="tab-btn" onclick="switchGame('mlbb')">MLBB</button>
+        <button class="tab-btn" onclick="switchGame('pubg')">PUBG</button>
+    </div>
+
+    <div class="content-area">
+        <div id="content-wrapper" class="fade-in-up">
+            <div id="game-rules" class="rules-box"></div>
+            <div id="price-list"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 ບໍລິການເຕີມເກມອອນລາຍ | ວ່ອງໄວ ປອດໄພ 100%
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // ❄️ ລະບົບສ້າງຫິມະ ❄️
+    // ============================================
+    function createSnowflake() {
+        const snowflake = document.createElement('div');
+        snowflake.classList.add('snowflake');
+        snowflake.innerHTML = '❄'; // ຕົວອັກສອນຫິມະ
+
+        // ສຸ່ມຕຳແໜ່ງເລີ່ມຕົ້ນຕາມລວງຂວາງ (left 0% ຫາ 100%)
+        snowflake.style.left = Math.random() * 100 + 'vw';
+        
+        // ສຸ່ມຂະໜາດ (10px ຫາ 25px)
+        snowflake.style.fontSize = (Math.random() * 15 + 10) + 'px';
+        
+        // ສຸ່ມຄວາມໄວໃນການຕົກ (5 ຫາ 12 ວິນາທີ)
+        const fallDuration = Math.random() * 7 + 5;
+        // ສຸ່ມຄວາມໄວໃນການປິວ (ຊ້າກວ່າການຕົກ)
+        const driftDuration = Math.random() * 10 + 8;
+        
+        snowflake.style.animationDuration = `${fallDuration}s, ${driftDuration}s`;
+        
+        // ສຸ່ມຄວາມໂປ່ງໃສ
+        snowflake.style.opacity = Math.random() * 0.6 + 0.3;
+
+        document.body.appendChild(snowflake);
+
+        // ລຶບຫິມະອອກເມື່ອມັນຕົກສຸດຈໍແລ້ວ ເພື່ອບໍ່ໃຫ້ເຄື່ອງໜັກ
+        setTimeout(() => {
+            snowflake.remove();
+        }, fallDuration * 1000);
+    }
+
+    // ສ້າງຫິມະໃໝ່ທຸກໆ 300 milliseconds (ປັບເລກນີ້ຖ້າຢາກໃຫ້ຕົກຫຼາຍ/ໜ້ອຍ)
+    setInterval(createSnowflake, 300);
+    
+    // ============================================
+    // 🟢 ໂຊນຂໍ້ມູນລາຄາ (Data Zone)
+    // ============================================
+
+    const gamesData = {
+        "roblox": {
+            rules: ["📍 ໃຊ້ ID + Password", "✅ ລະຫັດສ້າງໃໝ່ເຕີມໄດ້", "⚠️ ຕິດ Premium 10%"],
+            items: [
+                { title: "Standard", color: "#00f2ea", list: [
+                    { name: "80 Robux", price: "21,000" },
+                    { name: "160 Robux", price: "42,000" },
+                    { name: "240 Robux", price: "63,000" },
+                    { name: "320 Robux", price: "84,000" },
+                    { name: "500 Robux", price: "99,000" },
+                    { name: "1,000 Robux", price: "195,000" }
+                ]},
+                { title: "Premium", color: "#ffd700", list: [
+                    { name: "Premium 450", price: "100,000" },
+                    { name: "Premium 1000", price: "195,000" },
+                    { name: "Premium 2000", price: "195,000" }
+                ]}
+            ]
+        },
+        "freefire": {
+            rules: ["📍 ໃຊ້ UID ເທົ່ານັ້ນ", "⚡ ເຂົ້າທັນທີບໍ່ຕ້ອງລໍຖ້າ"],
+            items: [
+                { title: "Diamond Pack", color: "#ff9ff3", list: [
+                    { name: "100 💎", price: "12,000" },
+                    { name: "310 💎", price: "35,000" },
+                    { name: "520 💎", price: "58,000" }
+                ]}
+            ]
+        },
+        "mlbb": {
+            rules: ["📍 User ID + Zone ID", "⚡ ເຂົ້າໄວ 5 ນາທີ"],
+            items: [
+                { title: "Fast Charge", color: "#54a0ff", list: [
+                    { name: "86 💎", price: "15,000" },
+                    { name: "172 💎", price: "30,000" }
+                ]}
+            ]
+        },
+        "pubg": {
+            rules: ["📍 Character ID", "⚡ ເຂົ້າໄວປານຟ້າຜ່າ"],
+            items: [
+                { title: "UC Global", color: "#ff9f43", list: [
+                    { name: "60 UC", price: "15,000" },
+                    { name: "325 UC", price: "75,000" }
+                ]}
+            ]
+        }
+    };
+
+    function switchGame(gameKey) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        const game = gamesData[gameKey];
+        const wrapper = document.getElementById('content-wrapper');
+        
+        wrapper.classList.remove('fade-in-up');
+        void wrapper.offsetWidth;
+        wrapper.classList.add('fade-in-up');
+
+        let rulesHtml = "";
+        game.rules.forEach(rule => rulesHtml += `<li>${rule}</li>`);
+        document.getElementById('game-rules').innerHTML = rulesHtml;
+
+        let listHtml = "";
+        game.items.forEach(group => {
+            listHtml += `<h2 style="border-left-color:${group.color}; color:${group.color}">${group.title}</h2>`;
+            
+            group.list.forEach(item => {
+                listHtml += `
+                <div class="price-row" onmouseover="this.style.borderColor='${group.color}40'" onmouseout="this.style.borderColor='transparent'">
+                    
+                    <div class="item-info">
+                        <div class="icon-box" style="background:${group.color}; box-shadow: 0 0 10px ${group.color}">
+                            ${getIcon(gameKey)}
+                        </div>
+                        <div class="item-name">${item.name}</div>
+                    </div>
+
+                    <div class="item-price" style="color:${group.color}">${item.price} ກີບ</div>
+
+                </div>`;
+            });
+        });
+        document.getElementById('price-list').innerHTML = listHtml;
+    }
+
+    function getIcon(game) {
+        if(game === 'roblox') return 'R';
+        if(game === 'freefire') return 'F';
+        if(game === 'mlbb') return 'M';
+        if(game === 'pubg') return 'P';
+        return 'G';
+    }
+
+    document.querySelector('.tab-btn').click();
+
+</script>
+
+</body>
+</html>
