@@ -10,8 +10,8 @@
             --primary: #00f2ea;
             --secondary: #ff0050;
             --text: #ffffff;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
         body {
@@ -19,21 +19,38 @@
             margin: 0;
             padding: 20px;
             color: var(--text);
-            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #141e30);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
             min-height: 100vh;
-            overflow-x: hidden; /* ປ້ອງກັນ scrollbar ລວງຂວາງ */
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            overflow-x: hidden;
+            background-color: #1a1a2e;
         }
 
         /* ============================
-           ❄️ ໂຊນ CSS ສຳລັບຫິມະ ❄️
+           🐶 ໂຊນພື້ນຫຼັງນ້ອງໝາ 🐶
+        ============================ */
+        .animated-bg {
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            z-index: -1;
+            
+            /* ຮູບນ້ອງໝາ (ສາມາດປ່ຽນລິ້ງໄດ້) */
+            background-image: url('https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1469&auto=format&fit=crop');
+            
+            background-size: cover;
+            background-position: center;
+            animation: bgMove 40s ease-in-out infinite alternate;
+            filter: brightness(0.5); /* ປັບໃຫ້ມືດລົງເລັກນ້ອຍເພື່ອໃຫ້ຫິມະເດັ່ນ */
+        }
+
+        @keyframes bgMove {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.1) translate(-3%, -2%); }
+        }
+
+        /* ============================
+           ❄️ ໂຊນ CSS ຫິມະ ❄️
         ============================ */
         .snowflake {
             position: fixed;
@@ -41,9 +58,9 @@
             color: #fff;
             font-size: 1em;
             user-select: none;
-            pointer-events: none; /* ສຳຄັນ: ບໍ່ໃຫ້ບັງການກົດປຸ່ມ */
-            z-index: 9999; /* ໃຫ້ຢູ່ຊັ້ນເທິງສຸດ */
-            text-shadow: 0 0 5px #00f2ea; /* ເພີ່ມແສງເງົາໃຫ້ເຂົ້າກັບຕີມ */
+            pointer-events: none; /* ບໍ່ໃຫ້ບັງການກົດ */
+            z-index: 9999;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
             will-change: transform;
             animation-name: fall, drift;
             animation-timing-function: linear, ease-in-out;
@@ -52,38 +69,34 @@
 
         @keyframes fall {
             0% { top: -20px; }
-            100% { top: 105vh; } /* ໃຫ້ຕົກກາຍຈໍລົງໄປ */
+            100% { top: 105vh; }
         }
 
         @keyframes drift {
             0% { transform: translateX(0); }
-            50% { transform: translateX(50px); } /* ປິວໄປທາງຂວາ */
+            50% { transform: translateX(50px); }
             100% { transform: translateX(0); }
         }
 
         /* ============================
-           ຈົບໂຊນຫິມະ
+           Main Container
         ============================ */
-
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(30, 30, 40, 0.6); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             overflow: hidden;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             padding-bottom: 20px;
-            position: relative; /* ເພື່ອໃຫ້ z-index ທຳງານຖືກຕ້ອງ */
-            z-index: 10; /* ໃຫ້ container ຢູ່ເໜືອພື້ນຫຼັງ ແຕ່ໃຕ້ຫິມະ */
+            position: relative;
+            z-index: 10;
         }
         
-        .header {
-            padding: 30px 20px;
-            text-align: center;
-        }
+        .header { padding: 30px 20px; text-align: center; }
         
         .header h1 {
             margin: 0;
@@ -96,18 +109,14 @@
         }
 
         .tab-container {
-            display: flex;
-            gap: 10px;
-            padding: 10px 20px;
-            overflow-x: auto;
-            scrollbar-width: none; 
+            display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; 
         }
         .tab-container::-webkit-scrollbar { display: none; }
 
         .tab-btn {
-            background: var(--glass-bg);
+            background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--glass-border);
-            color: #aaa;
+            color: #ccc;
             padding: 10px 25px;
             border-radius: 50px;
             cursor: pointer;
@@ -131,7 +140,7 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
         .rules-box {
-            background: rgba(255, 200, 0, 0.1);
+            background: rgba(255, 200, 0, 0.15);
             padding: 15px;
             border-radius: 12px;
             margin-bottom: 25px;
@@ -142,57 +151,36 @@
         .rules-box li { margin-bottom: 5px; list-style: none; }
 
         h2 {
-            font-size: 1.1rem;
-            color: var(--text);
-            margin-top: 25px;
-            padding-left: 10px;
-            border-left: 4px solid var(--primary);
-            text-transform: uppercase;
+            font-size: 1.1rem; color: var(--text); margin-top: 25px; padding-left: 10px; border-left: 4px solid var(--primary); text-transform: uppercase;
         }
 
         .price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            background: var(--glass-bg);
-            border-radius: 12px;
-            transition: all 0.3s;
-            border: 1px solid transparent;
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px; transition: all 0.3s; border: 1px solid transparent;
         }
 
         .price-row:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .item-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
+        .item-info { display: flex; align-items: center; gap: 12px; }
         .item-name { font-weight: 600; font-size: 1rem; }
         
         .item-price {
-            font-weight: 800;
-            color: var(--primary);
-            font-size: 1.2rem;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            font-weight: 800; color: var(--primary); font-size: 1.2rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         .icon-box {
-            width: 32px; height: 32px; background: #fff; color: #000; border-radius: 8px;
-            display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold;
+            width: 32px; height: 32px; background: #fff; color: #000; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold;
         }
         
-        .footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+        .footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.7); font-size: 0.8rem; }
     </style>
 </head>
 <body>
+
+<div class="animated-bg"></div>
 
 <div class="container">
     <div class="header">
@@ -202,8 +190,8 @@
 
     <div class="tab-container">
         <button class="tab-btn active" onclick="switchGame('roblox')">ROBLOX</button>
+        <button class="tab-btn" onclick="switchGame('mlbb')">ໂມບາຍ</button>
         <button class="tab-btn" onclick="switchGame('freefire')">FREE FIRE</button>
-        <button class="tab-btn" onclick="switchGame('mlbb')">MLBB</button>
         <button class="tab-btn" onclick="switchGame('pubg')">PUBG</button>
     </div>
 
@@ -215,7 +203,7 @@
     </div>
 
     <div class="footer">
-        © 2024 ບໍລິການເຕີມເກມອອນລາຍ | ວ່ອງໄວ ປອດໄພ 100%
+        © 2026 ແຊັດກຸ່ມບໍ່ອ່ານ  | ທັກສົ່ງສ່ວນໂຕ
     </div>
 </div>
 
@@ -226,34 +214,26 @@
     function createSnowflake() {
         const snowflake = document.createElement('div');
         snowflake.classList.add('snowflake');
-        snowflake.innerHTML = '❄'; // ຕົວອັກສອນຫິມະ
-
-        // ສຸ່ມຕຳແໜ່ງເລີ່ມຕົ້ນຕາມລວງຂວາງ (left 0% ຫາ 100%)
-        snowflake.style.left = Math.random() * 100 + 'vw';
+        snowflake.innerHTML = '❄'; // ສັນຍາລັກຫິມະ
         
-        // ສຸ່ມຂະໜາດ (10px ຫາ 25px)
+        snowflake.style.left = Math.random() * 100 + 'vw';
         snowflake.style.fontSize = (Math.random() * 15 + 10) + 'px';
         
-        // ສຸ່ມຄວາມໄວໃນການຕົກ (5 ຫາ 12 ວິນາທີ)
-        const fallDuration = Math.random() * 7 + 5;
-        // ສຸ່ມຄວາມໄວໃນການປິວ (ຊ້າກວ່າການຕົກ)
-        const driftDuration = Math.random() * 10 + 8;
+        const fallDuration = Math.random() * 5 + 5;
+        const driftDuration = Math.random() * 10 + 5;
         
         snowflake.style.animationDuration = `${fallDuration}s, ${driftDuration}s`;
-        
-        // ສຸ່ມຄວາມໂປ່ງໃສ
-        snowflake.style.opacity = Math.random() * 0.6 + 0.3;
+        snowflake.style.opacity = Math.random() * 0.7 + 0.3;
 
         document.body.appendChild(snowflake);
 
-        // ລຶບຫິມະອອກເມື່ອມັນຕົກສຸດຈໍແລ້ວ ເພື່ອບໍ່ໃຫ້ເຄື່ອງໜັກ
         setTimeout(() => {
             snowflake.remove();
         }, fallDuration * 1000);
     }
 
-    // ສ້າງຫິມະໃໝ່ທຸກໆ 300 milliseconds (ປັບເລກນີ້ຖ້າຢາກໃຫ້ຕົກຫຼາຍ/ໜ້ອຍ)
-    setInterval(createSnowflake, 300);
+    // ສ້າງຫິມະໃໝ່ທຸກໆ 200 ms
+    setInterval(createSnowflake, 200);
     
     // ============================================
     // 🟢 ໂຊນຂໍ້ມູນລາຄາ (Data Zone)
@@ -261,20 +241,30 @@
 
     const gamesData = {
         "roblox": {
-            rules: ["📍 ໃຊ້ ID + Password", "✅ ລະຫັດສ້າງໃໝ່ເຕີມໄດ້", "⚠️ ຕິດ Premium 10%"],
+            rules: ["📍 ໃຊ້ ID + Password", "✅ ລະຫັດສ້າງໃໝ່ເຕີມໄດ້", "✅ ເຊີບຫວຽດນາມເຕີມໄດ້", "⚠️ ກວດສອບຂໍ້ມູນກ່ອນສົ່ງມາເຕີມ" , "⚠️ ຕິດຢຶນຢັນຊ້າ 5 ນາທີຂ້າມຄິວ" ],
             items: [
-                { title: "Standard", color: "#00f2ea", list: [
-                    { name: "80 Robux", price: "21,000" },
-                    { name: "160 Robux", price: "42,000" },
-                    { name: "240 Robux", price: "63,000" },
-                    { name: "320 Robux", price: "84,000" },
-                    { name: "500 Robux", price: "99,000" },
-                    { name: "1,000 Robux", price: "195,000" }
+                { title: "ແພັກ Standard", color: "#00f2ea", list: [
+                    { name: "80 Robux", price: "20,000" },
+                    { name: "160 Robux", price: "40,000" },
+                    { name: "240 Robux", price: "60,000" },
+                    { name: "320 Robux", price: "80,000" },
+                    { name: "500 Robux", price: "95,000" },
+                    { name: "1,000 Robux", price: "190,000" },
+                    { name: "2,000 Robux", price: "380,000" },
+                    { name: "3,000 Robux", price: "580,000" },
+                    { name: "4,000 Robux", price: "760,000" },
+                    { name: "5,000 Robux", price: "950,000" },
+                    { name: "6,000 Robux", price: "1,140,000" },
+                    { name: "7,000 Robux", price: "1,330,000" },
+                    { name: "8,000 Robux", price: "1,520,000" },
+                    { name: "9,000 Robux", price: "1,710,000" },
+                    { name: "10,000 Robux", price: "1,900,000" },
+                    { name: "20,000 Robux", price: "3,800,000" }
                 ]},
-                { title: "Premium", color: "#ffd700", list: [
-                    { name: "Premium 450", price: "100,000" },
-                    { name: "Premium 1000", price: "195,000" },
-                    { name: "Premium 2000", price: "195,000" }
+                { title: "ແພັກ Premium", color: "#ffd700", list: [
+                    { name: "Premium 450", price: "950,000" },
+                    { name: "Premium 1000", price: "190,000" },
+                    { name: "Premium 2200", price: "380,000" }
                 ]}
             ]
         },
@@ -349,7 +339,7 @@
     function getIcon(game) {
         if(game === 'roblox') return 'R';
         if(game === 'freefire') return 'F';
-        if(game === 'mlbb') return 'M';
+        if(game === 'mlbb') return '💎';
         if(game === 'pubg') return 'P';
         return 'G';
     }
