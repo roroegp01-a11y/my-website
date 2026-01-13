@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top-up Price List</title>
+    <title>Top-up Price List Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -25,7 +25,7 @@
         }
 
         /* ============================
-           🐶 ໂຊນພື້ນຫຼັງນ້ອງໝາ 🐶
+           🐶 ໂຊນພື້ນຫຼັງ 🐶
         ============================ */
         .animated-bg {
             position: fixed;
@@ -34,14 +34,11 @@
             width: 120%;
             height: 120%;
             z-index: -1;
-            
-            /* ຮູບນ້ອງໝາ (ສາມາດປ່ຽນລິ້ງໄດ້) */
             background-image: url('https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1469&auto=format&fit=crop');
-            
             background-size: cover;
             background-position: center;
             animation: bgMove 40s ease-in-out infinite alternate;
-            filter: brightness(0.5); /* ປັບໃຫ້ມືດລົງເລັກນ້ອຍເພື່ອໃຫ້ຫິມະເດັ່ນ */
+            filter: brightness(0.5);
         }
 
         @keyframes bgMove {
@@ -58,7 +55,7 @@
             color: #fff;
             font-size: 1em;
             user-select: none;
-            pointer-events: none; /* ບໍ່ໃຫ້ບັງການກົດ */
+            pointer-events: none;
             z-index: 9999;
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
             will-change: transform;
@@ -82,7 +79,7 @@
            Main Container
         ============================ */
         .container {
-            max-width: 600px;
+            max-width: 900px;
             margin: 0 auto;
             background: rgba(30, 30, 40, 0.6); 
             backdrop-filter: blur(12px);
@@ -96,7 +93,7 @@
             z-index: 10;
         }
         
-        .header { padding: 30px 20px; text-align: center; }
+        .header { padding: 30px 20px 10px; text-align: center; }
         
         .header h1 {
             margin: 0;
@@ -108,8 +105,58 @@
             text-transform: uppercase;
         }
 
+        /* +++++++++++++++++++++++++++++++++++++++
+           📢 CSS ສໍາລັບແຖບປະກາດ (Marquee)
+           +++++++++++++++++++++++++++++++++++++++ */
+        .announcement-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            margin-top: 15px; /* ເພີ່ມໄລຍະຫ່າງຈາກປຸ່ມ */
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+
+        .anno-label {
+            background: var(--secondary);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 15px;
+            white-space: nowrap;
+            box-shadow: 0 0 10px rgba(255, 0, 80, 0.5);
+            z-index: 2;
+        }
+
+        .marquee-container {
+            flex-grow: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .marquee-text {
+            display: inline-block;
+            color: #00f2ea;
+            font-size: 0.95rem;
+            animation: marquee 20s linear infinite;
+            padding-left: 100%;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Tab Styles */
         .tab-container {
-            display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; 
+            display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; justify-content: center;
+            margin-top: 10px;
         }
         .tab-container::-webkit-scrollbar { display: none; }
 
@@ -154,25 +201,54 @@
             font-size: 1.1rem; color: var(--text); margin-top: 25px; padding-left: 10px; border-left: 4px solid var(--primary); text-transform: uppercase;
         }
 
+        /* Grid System (4 Columns) */
+        .grid-box {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-box { grid-template-columns: repeat(3, 1fr); }
+        }
+        
+        @media (max-width: 500px) {
+            .grid-box { grid-template-columns: repeat(2, 1fr); }
+        }
+
         .price-row {
-            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; margin-bottom: 10px;
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            padding: 15px 5px; 
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px; transition: all 0.3s; border: 1px solid transparent;
+            border-radius: 12px; 
+            transition: all 0.3s; 
+            border: 1px solid transparent;
+            text-align: center;
         }
 
         .price-row:hover {
-            background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
 
-        .item-info { display: flex; align-items: center; gap: 12px; }
-        .item-name { font-weight: 600; font-size: 1rem; }
+        .item-info { 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            gap: 8px; 
+            margin-bottom: 5px;
+        }
+        
+        .item-name { font-weight: 600; font-size: 0.85rem; opacity: 0.9; }
         
         .item-price {
-            font-weight: 800; color: var(--primary); font-size: 1.2rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            font-weight: 800; color: var(--primary); font-size: 1.1rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         .icon-box {
-            width: 32px; height: 32px; background: #fff; color: #000; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold;
+            width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; margin-bottom: 5px;
         }
         
         .footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.7); font-size: 0.8rem; }
@@ -184,15 +260,24 @@
 
 <div class="container">
     <div class="header">
-        <h1>⚡ ເລດໂຍນເກມຕ່າງໆຮ້ານລຸງແມັກ ⚡</h1>
+        <h1>⚡ ເລດໂຍນເກມ 4 ຖັນ ⚡</h1>
         <p style="margin:5px 0 0; opacity:0.7;">ຕາຕະລາງລາຄາອັບເດດລ່າສຸດ</p>
     </div>
 
     <div class="tab-container">
-        <button class="tab-btn active" onclick="switchGame('roblox')">ROBLOX</button>
+        <button class="tab-btn active" onclick="switchGame('roblox')">ໂລບູດ</button>
         <button class="tab-btn" onclick="switchGame('mlbb')">ໂມບາຍ</button>
         <button class="tab-btn" onclick="switchGame('freefire')">FREE FIRE</button>
         <button class="tab-btn" onclick="switchGame('pubg')">PUBG</button>
+    </div>
+
+    <div class="announcement-bar">
+        <div class="anno-label">📢 ແຈ້ງເຕືອນ:</div>
+        <div class="marquee-container">
+            <div class="marquee-text">
+                ຍິນດີຕ້ອນຮັບສູ່ຮ້ານລຸງແມັກ! ລະບົບເຕີມເກມເປີດໃຫ້ບໍລິການ 24 ຊົ່ວໂມງ ⚡ | ໂປຣໂມຊັ່ນພິເສດ: ເຕີມ Roblox ມື້ນີ້ ແຖມຟຣີລະຫັດສຸ່ມ! | ຕິດຕໍ່ແອັດມິນໄດ້ທີ່ຫ້ອງແຊັດເລີຍ 💖
+            </div>
+        </div>
     </div>
 
     <div class="content-area">
@@ -214,7 +299,7 @@
     function createSnowflake() {
         const snowflake = document.createElement('div');
         snowflake.classList.add('snowflake');
-        snowflake.innerHTML = '❄'; // ສັນຍາລັກຫິມະ
+        snowflake.innerHTML = '❄';
         
         snowflake.style.left = Math.random() * 100 + 'vw';
         snowflake.style.fontSize = (Math.random() * 15 + 10) + 'px';
@@ -232,7 +317,6 @@
         }, fallDuration * 1000);
     }
 
-    // ສ້າງຫິມະໃໝ່ທຸກໆ 200 ms
     setInterval(createSnowflake, 200);
     
     // ============================================
@@ -244,27 +328,27 @@
             rules: ["📍 ໃຊ້ ID + Password", "✅ ລະຫັດສ້າງໃໝ່ເຕີມໄດ້", "✅ ເຊີບຫວຽດນາມເຕີມໄດ້", "⚠️ ກວດສອບຂໍ້ມູນກ່ອນສົ່ງມາເຕີມ" , "⚠️ ຕິດຢຶນຢັນຊ້າ 5 ນາທີຂ້າມຄິວ" ],
             items: [
                 { title: "ແພັກ Standard", color: "#00f2ea", list: [
-                    { name: "80 Robux", price: "20,000" },
-                    { name: "160 Robux", price: "40,000" },
-                    { name: "240 Robux", price: "60,000" },
-                    { name: "320 Robux", price: "80,000" },
-                    { name: "500 Robux", price: "95,000" },
-                    { name: "1,000 Robux", price: "190,000" },
-                    { name: "2,000 Robux", price: "380,000" },
-                    { name: "3,000 Robux", price: "580,000" },
-                    { name: "4,000 Robux", price: "760,000" },
-                    { name: "5,000 Robux", price: "950,000" },
-                    { name: "6,000 Robux", price: "1,140,000" },
-                    { name: "7,000 Robux", price: "1,330,000" },
-                    { name: "8,000 Robux", price: "1,520,000" },
-                    { name: "9,000 Robux", price: "1,710,000" },
-                    { name: "10,000 Robux", price: "1,900,000" },
-                    { name: "20,000 Robux", price: "3,800,000" }
+                    { name: "80 R", price: "20,000  ກີບ" },
+                    { name: "160 R", price: "40,000  ກີບ" },
+                    { name: "240 R", price: "60,000  ກີບ" },
+                    { name: "320 R", price: "80,000  ກີບ" },
+                    { name: "500 R", price: "95,000  ກີບ" },
+                    { name: "1,000 R", price: "190,000  ກີບ" },
+                    { name: "2,000 R", price: "380,000 ກີບ " },
+                    { name: "3,000 R", price: "580,000  ກີບ" },
+                    { name: "4,000 R", price: "760,000  ກີບ" },
+                    { name: "5,000 R", price: "950,000  ກີບ" },
+                    { name: "6,000 R", price: "1,140,000  ກີບ" },
+                    { name: "7,000 R", price: "1,330,000  ກີບ" },
+                    { name: "8,000 R", price: "1,520,000  ກີບ" },
+                    { name: "9,000 R", price: "1,710,000  ກີບ" },
+                    { name: "10,000 R", price: "1,900,000  ກີບ" },
+                    { name: "20,000 R", price: "3,800,000  ກີບ" }
                 ]},
                 { title: "ແພັກ Premium", color: "#ffd700", list: [
-                    { name: "Premium 450", price: "950,000" },
-                    { name: "Premium 1000", price: "190,000" },
-                    { name: "Premium 2200", price: "380,000" }
+                    { name: "Premium 450", price: "950,000  ກີບ" },
+                    { name: "Premium 1000", price: "190,000 ກີບ" },
+                    { name: "Premium 2200", price: "380,000 ກີບ " }
                 ]}
             ]
         },
@@ -274,7 +358,10 @@
                 { title: "Diamond Pack", color: "#ff9ff3", list: [
                     { name: "100 💎", price: "12,000" },
                     { name: "310 💎", price: "35,000" },
-                    { name: "520 💎", price: "58,000" }
+                    { name: "520 💎", price: "58,000" },
+                    { name: "1060 💎", price: "115,000" },
+                    { name: "2180 💎", price: "230,000" },
+                    { name: "5600 💎", price: "550,000" }
                 ]}
             ]
         },
@@ -283,7 +370,9 @@
             items: [
                 { title: "Fast Charge", color: "#54a0ff", list: [
                     { name: "86 💎", price: "15,000" },
-                    { name: "172 💎", price: "30,000" }
+                    { name: "172 💎", price: "30,000" },
+                    { name: "257 💎", price: "45,000" },
+                    { name: "344 💎", price: "60,000" }
                 ]}
             ]
         },
@@ -292,7 +381,9 @@
             items: [
                 { title: "UC Global", color: "#ff9f43", list: [
                     { name: "60 UC", price: "15,000" },
-                    { name: "325 UC", price: "75,000" }
+                    { name: "325 UC", price: "75,000" },
+                    { name: "660 UC", price: "150,000" },
+                    { name: "1800 UC", price: "380,000" }
                 ]}
             ]
         }
@@ -317,6 +408,9 @@
         game.items.forEach(group => {
             listHtml += `<h2 style="border-left-color:${group.color}; color:${group.color}">${group.title}</h2>`;
             
+            // Container ຂອງ Grid
+            listHtml += `<div class="grid-box">`;
+
             group.list.forEach(item => {
                 listHtml += `
                 <div class="price-row" onmouseover="this.style.borderColor='${group.color}40'" onmouseout="this.style.borderColor='transparent'">
@@ -328,10 +422,12 @@
                         <div class="item-name">${item.name}</div>
                     </div>
 
-                    <div class="item-price" style="color:${group.color}">${item.price} ກີບ</div>
+                    <div class="item-price" style="color:${group.color}">${item.price}</div>
 
                 </div>`;
             });
+            
+            listHtml += `</div>`;
         });
         document.getElementById('price-list').innerHTML = listHtml;
     }
@@ -339,7 +435,7 @@
     function getIcon(game) {
         if(game === 'roblox') return 'R';
         if(game === 'freefire') return 'F';
-        if(game === 'mlbb') return '💎';
+        if(game === 'mlbb') return 'M';
         if(game === 'pubg') return 'P';
         return 'G';
     }
