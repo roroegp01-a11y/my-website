@@ -2,465 +2,551 @@
 <html lang="lo">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top-up Price List Final</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#F3F4F6">
+    <title>Stock-AC1C3 Mobile</title>
+    
+    <!-- React & Tailwind -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Noto Sans Lao', 'sans-serif'] },
+                    colors: {
+                        primary: '#6366f1',
+                        surface: '#ffffff',
+                        background: '#f3f4f6'
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        :root {
-            --primary: #00f2ea;
-            --secondary: #ff0050;
-            --text: #ffffff;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-        }
-
-        body {
-            font-family: 'Noto Sans Lao', sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-            background-color: #1a1a2e;
-        }
-
-        /* ============================
-           🐶 ໂຊນພື້ນຫຼັງ 🐶
-        ============================ */
-        .animated-bg {
-            position: fixed;
-            top: -10%;
-            left: -10%;
-            width: 120%;
-            height: 120%;
-            z-index: -1;
-            background-image: url('https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1469&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            animation: bgMove 40s ease-in-out infinite alternate;
-            filter: brightness(0.5);
-        }
-
-        @keyframes bgMove {
-            0% { transform: scale(1) translate(0, 0); }
-            100% { transform: scale(1.1) translate(-3%, -2%); }
-        }
-
-        /* ============================
-           ❄️ ໂຊນ CSS ຫິມະ ❄️
-        ============================ */
-        .snowflake {
-            position: fixed;
-            top: -20px;
-            color: #fff;
-            font-size: 1em;
-            user-select: none;
-            pointer-events: none;
-            z-index: 9999;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-            will-change: transform;
-            animation-name: fall, drift;
-            animation-timing-function: linear, ease-in-out;
-            animation-iteration-count: infinite, infinite;
-        }
-
-        @keyframes fall {
-            0% { top: -20px; }
-            100% { top: 105vh; }
-        }
-
-        @keyframes drift {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(50px); }
-            100% { transform: translateX(0); }
-        }
-
-        /* ============================
-           Main Container
-        ============================ */
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: rgba(30, 30, 40, 0.6); 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            padding-bottom: 20px;
-            position: relative;
-            z-index: 10;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans Lao', sans-serif; 
+            background-color: #f3f4f6; 
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
         }
         
-        .header { padding: 30px 20px 10px; text-align: center; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .header h1 {
-            margin: 0;
-            font-size: 2rem;
-            background: linear-gradient(to right, #00f2ea, #ff0050);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        /* +++++++++++++++++++++++++++++++++++++++
-           📢 CSS ສໍາລັບແຖບປະກາດ (Marquee)
-           +++++++++++++++++++++++++++++++++++++++ */
-        .announcement-bar {
-            display: flex;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
-            margin-top: 15px; /* ເພີ່ມໄລຍະຫ່າງຈາກປຸ່ມ */
-            margin-bottom: 5px;
-            overflow: hidden;
-        }
-
-        .anno-label {
-            background: var(--secondary);
-            color: #fff;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-right: 15px;
-            white-space: nowrap;
-            box-shadow: 0 0 10px rgba(255, 0, 80, 0.5);
-            z-index: 2;
-        }
-
-        .marquee-container {
-            flex-grow: 1;
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-        }
-
-        .marquee-text {
-            display: inline-block;
-            color: #00f2ea;
-            font-size: 0.95rem;
-            animation: marquee 20s linear infinite;
-            padding-left: 100%;
-        }
-
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
-        }
-
-        /* Tab Styles */
-        .tab-container {
-            display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; justify-content: center;
-            margin-top: 10px;
-        }
-        .tab-container::-webkit-scrollbar { display: none; }
-
-        .tab-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--glass-border);
-            color: #ffffff;
-            padding: 10px 25px;
-            border-radius: 50px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-family: 'Noto Sans Lao';
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(45deg, var(--primary), #00a8ff);
-            color: #000;
-            border-color: transparent;
-            font-weight: 800;
-            box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
-        }
-
-        .content-area { padding: 20px; min-height: 400px; }
-
-        .fade-in-up { animation: fadeInUp 0.5s ease forwards; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Mobile Animations */
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .rules-box {
-            background: rgba(0, 0, 0, 0.15);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            font-size: 0.9rem;
-            border-left: 4px solid #ffd700;
-            color: #ffffff;
-        }
-        .rules-box li { margin-bottom: 5px; list-style: none; }
+        .animate-scale { animation: scaleIn 0.2s ease-out; }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        h2 {
-            font-size: 1.1rem; color: var(--text); margin-top: 25px; padding-left: 10px; border-left: 4px solid var(--primary); text-transform: uppercase;
-        }
-
-        /* Grid System (4 Columns) */
-        .grid-box {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        @media (max-width: 768px) {
-            .grid-box { grid-template-columns: repeat(3, 1fr); }
-        }
-        
-        @media (max-width: 500px) {
-            .grid-box { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        .price-row {
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
-            padding: 15px 5px; 
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px; 
-            transition: all 0.3s; 
-            border: 1px solid transparent;
-            text-align: center;
-        }
-
-        .price-row:hover {
-            background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-        }
-
-        .item-info { 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            gap: 8px; 
-            margin-bottom: 5px;
-        }
-        
-        .item-name { font-weight: 600; font-size: 0.85rem; opacity: 0.9; }
-        
-        .item-price {
-            font-weight: 800; color: var(--primary); font-size: 1.1rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        .icon-box {
-            width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; margin-bottom: 5px;
-        }
-        
-        .footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.7); font-size: 0.8rem; }
+        /* Safe Area for iPhone X+ */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
-<body>
+<body class="text-slate-800 antialiased select-none">
+    <div id="root"></div>
 
-<div class="animated-bg"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-<div class="container">
-    <div class="header">
-        <h1>⚡ ເລດໂຍນເກມຮ້ານລຸງແມັກ ⚡</h1>
-        <p style="margin:5px 0 0; opacity:0.7;">ຕາຕະລາງລາຄາອັບເດດລ່າສຸດ</p>
-    </div>
-
-    <div class="tab-container">
-        <button class="tab-btn active" onclick="switchGame('roblox')">ໂລບູດ</button>
-        <button class="tab-btn" onclick="switchGame('mlbb')">ໂມບາຍ</button>
-
-    </div>
-
-    <div class="announcement-bar">
-        <div class="anno-label">📢 ປະກາດ:</div>
-        <div class="marquee-container">
-            <div class="marquee-text">
-                 ຕິດຕໍ່ແອັດມິນໄດ້ທີ່ທາງແຊັດສ່ວນໂຕເທົ່ານັ້ນ 💖
-            </div>
-        </div>
-    </div>
-
-    <div class="content-area">
-        <div id="content-wrapper" class="fade-in-up">
-            <div id="game-rules" class="rules-box"></div>
-            <div id="price-list"></div>
-        </div>
-    </div>
-
-    <div class="footer">
-        © 2026 ແຊັດກຸ່ມບໍ່ອ່ານ  | ທັກສົ່ງສ່ວນໂຕ
-    </div>
-</div>
-
-<script>
-    // ============================================
-    // ❄️ ລະບົບສ້າງຫິມະ ❄️
-    // ============================================
-    function createSnowflake() {
-        const snowflake = document.createElement('div');
-        snowflake.classList.add('snowflake');
-        snowflake.innerHTML = '❄';
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyA0XqpDeXRcmePJ0wEVj5UixJg0PzO_tKY",
+            authDomain: "stock-ac1c3.firebaseapp.com",
+            projectId: "stock-ac1c3",
+            storageBucket: "stock-ac1c3.firebasestorage.app",
+            messagingSenderId: "31846633000",
+            appId: "1:31846633000:web:54bf0ee62f9f6109d7ef1d",
+            measurementId: "G-8G7NY8CK23"
+        };
         
-        snowflake.style.left = Math.random() * 100 + 'vw';
-        snowflake.style.fontSize = (Math.random() * 15 + 10) + 'px';
-        
-        const fallDuration = Math.random() * 5 + 5;
-        const driftDuration = Math.random() * 10 + 5;
-        
-        snowflake.style.animationDuration = `${fallDuration}s, ${driftDuration}s`;
-        snowflake.style.opacity = Math.random() * 0.7 + 0.3;
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        document.body.appendChild(snowflake);
+        const formatNum = (num) => Number(num || 0).toLocaleString('en-US');
 
-        setTimeout(() => {
-            snowflake.remove();
-        }, fallDuration * 500);
-    }
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
 
-    setInterval(createSnowflake, 200);
-    
-    // ============================================
-    // 🟢 ໂຊນຂໍ້ມູນລາຄາ (Data Zone)
-    // ============================================
-
-    const gamesData = {
-        "roblox": {
-            rules: ["📍 ໃຊ້ ID + Password", "✅ ລະຫັດສ້າງໃໝ່ເຕີມໄດ້", "✅ ເຊີບຫວຽດນາມເຕີມໄດ້", "⚠️ ກວດສອບຂໍ້ມູນກ່ອນສົ່ງມາເຕີມ" , "⚠️ ຕິດຢຶນຢັນຊ້າ 5 ນາທີຂ້າມຄິວ" ],
-            items: [
-                { title: "ແພັກ Standard", color: "#00f2ea", list: [
-                    { name: "80 R", price: "20,000 ກີບ" },
-                    { name: "160 R", price: "40,000 ກີບ" },
-                    { name: "240 R", price: "60,000 ກີບ" },
-                    { name: "320 R", price: "80,000  ກີບ" },
-                    { name: "500 R", price: "95,000  ກີບ" },
-                    { name: "1,000 R", price: "190,000  ກີບ" },
-                    { name: "2,000 R", price: "380,000 ກີບ " },
-                    { name: "3,000 R", price: "580,000  ກີບ" },
-                    { name: "4,000 R", price: "760,000  ກີບ" },
-                    { name: "5,000 R", price: "950,000  ກີບ" },
-                    { name: "6,000 R", price: "1,140,000  ກີບ" },
-                    { name: "7,000 R", price: "1,330,000  ກີບ" },
-                    { name: "8,000 R", price: "1,520,000  ກີບ" },
-                    { name: "9,000 R", price: "1,710,000  ກີບ" },
-                    { name: "10,000 R", price: "1,900,000  ກີບ" },
-                    { name: "20,000 R", price: "3,800,000  ກີບ" }
-                ]},
-                { title: "ແພັກ Premium", color: "#ffd700", list: [
-                    { name: "Premium 450", price: "95,000  ກີບ" },
-                    { name: "Premium 1000", price: "190,000 ກີບ" },
-                    { name: "Premium 2200", price: "380,000 ກີບ " }
-                ]}
-            ]
-        },
-        "freefire": {
-           rules: ["📍 ໃຊ້ ID + Password", "✅ ລະຫັດສ້າງໃໝ່ເຕີມໄດ້", "✅ ເຊີບຫວຽດນາມເຕີມບໍ່ເຕີມໄດ້", "⚠️ ກວດສອບຂໍ້ມູນກ່ອນສົ່ງມາເຕີມ" , "⚠️ ຕິດຢຶນຢັນຊ້າ 5 ນາທີຂ້າມຄິວ" ],
-            items: [
-                { title: "Diamond Pack", color: "#ff9ff3", list: [
-                    { name: "100 💎", price: "12,000" },
-                    { name: "310 💎", price: "35,000" },
-                    { name: "520 💎", price: "58,000" },
-                    { name: "1060 💎", price: "115,000" },
-                    { name: "2180 💎", price: "230,000" },
-                    { name: "5600 💎", price: "550,000" }
-                ]}
-            ]
-        },
-        "mlbb": {
-            rules: 
-            ["📍 User ID + Zone ID", 
-            "❌ ເຊີບຫວຽດນາມເຕີມບໍ່ໄດ້❌", 
-            "⚠️ ກວດສອບຂໍ້ມູນກ່ອນສົ່ງມາເຕີມ", 
-            "⚠️ ແພັກຄູນສອງເຕີມໄດ້ໄອດີ 1ຄັ້ງ/1ແພັກ (ເຄີຍເຕີມມາແລ້ວຈະເຕີມບໍ່ໄດ້ອີກ)"],
-            items: [
-                { title: "Fast Charge", color: "#54a0ff", list: [
-                    { name: "86 💎", price: "30,000 ກິບ" },
-                    { name: "172 💎", price: "53,000 ກີບ" },
-                    { name: "257 💎", price: "75,000 ກີບ" },
-                    { name: "343 💎", price: "100,000 ກີບ" },
-                    { name: "514 💎", price: "150,000 ກີບ" },
-                    { name: "706 💎", price: "200,000 ກີບ" },
-                    { name: "1028 💎", price: "300,000 ກີບ" },
-                    { name: "1412 💎", price: "400,000 ກີບ" },
-                    { name: "2195 💎", price: "600,000 ກີບ" },
-                    { name: "3688 💎", price: "1,000,000 ກີບ" },
-                    { name: "5532 💎", price: "2,480,000 ກີບ" },
-                    { name: "10,080 💎", price: "2,710,000 ກີບ" }
-                ]},
-                { title: "ແພັກເສີມຕ່າງໆ", color: "#ffd700", list: [
-                    { name: "ບັດລາຍອາທິດ", price: "32,000 ກີບ" },
-                    { name: "50+50💎", price: "20,000 ກີບ" },
-                    { name: "150++150 💎", price: "50,000 ກີບ" },
-                    { name: "250+250 💎", price: "80,000 ກີບ" },
-                    { name: "500+500 💎", price: "160,000 ກີບ" }
-                ]}
-            ]
-        },
-        "pubg": {
-            rules: ["📍 Character ID", "⚡ ເຂົ້າໄວປານຟ້າຜ່າ"],
-            items: [
-                { title: "UC Global", color: "#ff9f43", list: [
-                    { name: "60 UC", price: "15,000" },
-                    { name: "325 UC", price: "75,000" },
-                    { name: "660 UC", price: "150,000" },
-                    { name: "1800 UC", price: "380,000" }
-                ]}
-            ]
-        }
-    };
-
-    function switchGame(gameKey) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        const game = gamesData[gameKey];
-        const wrapper = document.getElementById('content-wrapper');
-        
-        wrapper.classList.remove('fade-in-up');
-        void wrapper.offsetWidth;
-        wrapper.classList.add('fade-in-up');
-
-        let rulesHtml = "";
-        game.rules.forEach(rule => rulesHtml += `<li>${rule}</li>`);
-        document.getElementById('game-rules').innerHTML = rulesHtml;
-
-        let listHtml = "";
-        game.items.forEach(group => {
-            listHtml += `<h2 style="border-left-color:${group.color}; color:${group.color}">${group.title}</h2>`;
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [products, setProducts] = useState([]);
+            const [sales, setSales] = useState([]);
+            const [expenses, setExpenses] = useState([]); 
+            const [loading, setLoading] = useState(true);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('All'); 
+            const [stockCategory, setStockCategory] = useState('All'); 
             
-            // Container ຂອງ Grid
-            listHtml += `<div class="grid-box">`;
+            // Modals
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+            const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+            const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false); // For Delete All
+            
+            // 🔥 NEW: Generic Confirmation Modal State
+            const [confirmation, setConfirmation] = useState({ isOpen: false, type: null, id: null, title: '' });
 
-            group.list.forEach(item => {
-                listHtml += `
-                <div class="price-row" onmouseover="this.style.borderColor='${group.color}40'" onmouseout="this.style.borderColor='transparent'">
+            const [editingProduct, setEditingProduct] = useState(null);
+            
+            // Forms & States
+            const [formData, setFormData] = useState({ game: 'ML', pack: '', cost: 0, wholesale: 0, retail: 0, creditsUsed: 0, currentRate: 410 });
+            const [bulkData, setBulkData] = useState({ category: '', newRate: 0 });
+            const [expenseForm, setExpenseForm] = useState({ title: '', amount: 0, note: '' });
+            const [deletePassword, setDeletePassword] = useState('');
+
+            // Auth & Data Sync
+            useEffect(() => {
+                auth.signInAnonymously();
+                return auth.onAuthStateChanged(u => setUser(u));
+            }, []);
+
+            useEffect(() => {
+                if (!user) return;
+                const unsubProd = db.collection('products').onSnapshot(s => { setProducts(s.docs.map(d => ({ id: d.id, ...d.data() }))); setLoading(false); });
+                const unsubSales = db.collection('sales').orderBy('createdAt', 'desc').onSnapshot(s => setSales(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+                const unsubExp = db.collection('expenses').orderBy('createdAt', 'desc').onSnapshot(s => setExpenses(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+                return () => { unsubProd(); unsubSales(); unsubExp(); };
+            }, [user]);
+
+            useEffect(() => {
+                const parseVal = (val) => {
+                    if (!val) return 0;
+                    if (typeof val === 'number') return val;
+                    return Number(val.replace(',', '.'));
+                };
+                const credits = parseVal(formData.creditsUsed);
+                const rate = parseVal(formData.currentRate);
+                const cost = credits * rate;
+                if (cost >= 0 && cost !== formData.cost) setFormData(prev => ({ ...prev, cost }));
+            }, [formData.creditsUsed, formData.currentRate]);
+
+            const handleMakeSale = async (product, type) => {
+                if (!user) return;
+                const price = type === 'retail' ? product.retail : product.wholesale;
+                try {
+                    if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(50);
                     
-                    <div class="item-info">
-                        <div class="icon-box" style="background:${group.color}; box-shadow: 0 0 10px ${group.color}">
-                            ${getIcon(gameKey)}
-                        </div>
-                        <div class="item-name">${item.name}</div>
+                    await db.collection('sales').add({
+                        productName: `${product.game} - ${product.pack}`,
+                        price, profit: price - product.cost, type, 
+                        creditsUsed: product.creditsUsed || 0,
+                        createdAt: Date.now(), timestamp: new Date().toLocaleString('lo-LA')
+                    });
+                } catch (err) { alert(err.message); }
+            };
+
+            // 🔥 NEW: Generic Confirm Action Handler
+            const handleConfirmAction = async () => {
+                const { type, id } = confirmation;
+                if (!type || !id) return;
+
+                try {
+                    if (type === 'DELETE_EXPENSE') {
+                        await db.collection('expenses').doc(id).delete();
+                    } else if (type === 'DELETE_SALE') {
+                        await db.collection('sales').doc(id).delete();
+                    } else if (type === 'DELETE_PRODUCT') {
+                        await db.collection('products').doc(id).delete();
+                    }
+                } catch (e) {
+                    alert("ເກີດຂໍ້ຜິດພາດ: " + e.message);
+                }
+                setConfirmation({ isOpen: false, type: null, id: null, title: '' });
+            };
+
+            // Modified Delete Handlers to use Custom Modal
+            const handleDeleteSale = (id) => {
+                setConfirmation({ isOpen: true, type: 'DELETE_SALE', id, title: 'ລຶບລາຍການຂາຍນີ້?' });
+            };
+
+            const handleProductDelete = (id) => {
+                setConfirmation({ isOpen: true, type: 'DELETE_PRODUCT', id, title: 'ລຶບສິນຄ້ານີ້?' });
+            };
+
+            const handleDeleteExpense = (id) => {
+                setConfirmation({ isOpen: true, type: 'DELETE_EXPENSE', id, title: 'ລຶບລາຍຈ່າຍນີ້?' });
+            };
+
+            const handleProductSave = async () => {
+                if (!user) return;
+                const finalCredits = typeof formData.creditsUsed === 'string' ? parseFloat(formData.creditsUsed.replace(',', '.')) : formData.creditsUsed;
+                const data = { ...formData, creditsUsed: finalCredits || 0, profit: formData.retail - formData.cost, createdAt: Date.now() };
+                try {
+                    if (editingProduct) await db.collection('products').doc(editingProduct.id).update(data);
+                    else await db.collection('products').add(data);
+                    setIsModalOpen(false);
+                } catch(e) { alert(e.message); }
+            };
+
+            const handleAddExpense = async () => {
+                if (!expenseForm.title || !expenseForm.amount) return alert("ຂໍ້ມູນບໍ່ຄົບ");
+                try {
+                    await db.collection('expenses').add({ ...expenseForm, amount: Number(expenseForm.amount), createdAt: Date.now(), timestamp: new Date().toLocaleString('lo-LA') });
+                    setIsExpenseModalOpen(false); setExpenseForm({ title: '', amount: 0, note: '' });
+                } catch(e) { alert(e.message); }
+            };
+
+            const confirmDeleteAll = async () => {
+                if (deletePassword !== 'admin') {
+                    alert("ລະຫັດຜິດ!");
+                    return;
+                }
+                setLoading(true);
+                try {
+                    const snapshot = await db.collection('sales').get();
+                    if (snapshot.empty) { alert("ບໍ່ມີຂໍ້ມູນໃຫ້ລຶບ"); setLoading(false); setIsDeleteConfirmOpen(false); return; }
+                    const batchSize = 400; const chunks = [];
+                    for (let i = 0; i < snapshot.docs.length; i += batchSize) chunks.push(snapshot.docs.slice(i, i + batchSize));
+                    for (const chunk of chunks) {
+                        const batch = db.batch(); chunk.forEach(doc => batch.delete(doc.ref)); await batch.commit();
+                    }
+                    alert("ລຶບສຳເລັດ!"); setIsDeleteConfirmOpen(false); setDeletePassword('');
+                } catch (e) { alert("ເກີດຂໍ້ຜິດພາດ: " + e.message); }
+                setLoading(false);
+            };
+
+            const handleBulkUpdate = async () => {
+                if (!bulkData.category || !bulkData.newRate) return alert("ຂໍ້ມູນບໍ່ຄົບ");
+                if (!confirm(`ຢືນຢັນປ່ຽນເລດ ${bulkData.category}?`)) return;
+                setLoading(true);
+                try {
+                    const batch = db.batch();
+                    products.filter(p => p.game === bulkData.category).forEach(doc => {
+                        const newCost = doc.creditsUsed * bulkData.newRate;
+                        batch.update(db.collection('products').doc(doc.id), { currentRate: Number(bulkData.newRate), cost: newCost, profit: doc.retail - newCost });
+                    });
+                    await batch.commit(); setIsBulkModalOpen(false);
+                } catch (e) { alert(e.message); }
+                setLoading(false);
+            };
+
+            const totalSales = sales.reduce((a, b) => a + b.price, 0);
+            const totalProfit = sales.reduce((a, b) => a + b.profit, 0);
+            const totalExpenses = expenses.reduce((a, b) => a + b.amount, 0);
+            const netProfit = totalProfit - totalExpenses;
+            const categories = ['All', ...new Set(products.map(p => p.game))];
+            
+            const dailyStats = useMemo(() => {
+                const groups = {};
+                sales.forEach(s => {
+                    const date = new Date(s.createdAt).toLocaleDateString('en-GB'); 
+                    if(!groups[date]) groups[date] = { date, sales: 0, profit: 0, count: 0, rawDate: s.createdAt };
+                    groups[date].sales += s.price; groups[date].profit += s.profit; groups[date].count += 1;
+                });
+                return Object.values(groups).sort((a, b) => b.rawDate - a.rawDate);
+            }, [sales]);
+
+            if (loading && !products.length && !sales.length) return <div className="h-screen flex items-center justify-center bg-fuchsia-50"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>;
+
+            return (
+                <div className="flex flex-col min-h-screen pb-24 md:pb-0">
+                    
+                    {/* Top Bar Mobile */}
+                    <div className="md:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 py-4 flex justify-between items-center">
+                        <span className="font-black text-xl text-slate-800 flex items-center gap-2 tracking-tight">
+                            <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200"><Icon name="gamepad-2" size={18} /></div>
+                            Stock-AC1C3
+                        </span>
+                        <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold text-xs">A</div>
                     </div>
 
-                    <div class="item-price" style="color:${group.color}">${item.price}</div>
+                    {/* Desktop Sidebar */}
+                    <aside className="hidden md:flex w-72 flex-col fixed inset-y-0 bg-white border-r border-slate-200 z-20 p-6">
+                        <h1 className="text-2xl font-black text-indigo-600 mb-8 flex gap-2 items-center"><Icon name="gamepad-2" /> Stock-AC1C3</h1>
+                        <nav className="space-y-2">
+                            {['dashboard', 'sales', 'stock', 'expenses', 'history'].map(id => (
+                                <button key={id} onClick={() => setActiveTab(id)} className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'}`}>
+                                    {id.charAt(0).toUpperCase() + id.slice(1)}
+                                </button>
+                            ))}
+                        </nav>
+                    </aside>
 
-                </div>`;
-            });
-            
-            listHtml += `</div>`;
-        });
-        document.getElementById('price-list').innerHTML = listHtml;
-    }
+                    {/* Main Content */}
+                    <main className="flex-1 md:ml-72 p-4 md:p-8 max-w-5xl mx-auto w-full">
+                        
+                        {activeTab === 'dashboard' && (
+                            <div className="space-y-6 animate-slide-up">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-3xl text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-20"><Icon name="wallet" size={80}/></div>
+                                        <p className="text-indigo-100 font-bold text-xs uppercase tracking-wider mb-1">ຍອດຂາຍລວມ</p>
+                                        <h2 className="text-3xl font-black">{formatNum(totalSales)} <span className="text-sm opacity-80 font-bold">₭</span></h2>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-soft flex flex-col justify-center">
+                                        <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">ກຳໄລສຸດທິ (Net)</p>
+                                        <h2 className="text-3xl font-black text-emerald-500">{formatNum(netProfit)} <span className="text-sm text-slate-300 font-bold">₭</span></h2>
+                                        <p className="text-[10px] text-slate-400 mt-1">ຫັກລາຍຈ່າຍ: {formatNum(totalExpenses)}</p>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-soft flex flex-col justify-center">
+                                        <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">ອໍເດີທັງໝົດ</p>
+                                        <h2 className="text-3xl font-black text-slate-800">{sales.length} <span className="text-sm text-slate-300 font-bold">Orders</span></h2>
+                                    </div>
+                                </div>
+                                <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-soft">
+                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Icon name="clock" size={16} className="text-indigo-500"/> ລາຍການລ່າສຸດ</h3>
+                                    {sales.slice(0, 5).map(s => (
+                                        <div key={s.id} className="flex justify-between items-center py-3 border-b border-slate-50 last:border-0">
+                                            <div><p className="font-bold text-slate-700 text-sm">{s.productName}</p><p className="text-[10px] text-slate-400">{s.timestamp.split(' ')[1]}</p></div>
+                                            <span className="font-black text-slate-800">{formatNum(s.price)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-    function getIcon(game) {
-        if(game === 'roblox') return 'R';
-        if(game === 'freefire') return 'F';
-        if(game === 'mlbb') return 'M';
-        if(game === 'pubg') return 'P';
-        return 'G';
-    }
+                        {activeTab === 'sales' && (
+                            <div className="space-y-4 animate-slide-up">
+                                <div className="sticky top-16 md:top-0 bg-fuchsia-50/90 backdrop-blur pb-2 z-10 space-y-3">
+                                    <div className="relative">
+                                        <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input type="text" placeholder="ຄົ້ນຫາ..." className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none shadow-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 bg-white" 
+                                            value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                    </div>
+                                    <div className="flex gap-2 overflow-x-auto hide-scroll pb-1">
+                                        {categories.map(c => (
+                                            <button key={c} onClick={() => setSelectedCategory(c)} className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === c ? 'bg-slate-800 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200'}`}>{c}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {products.filter(p => (selectedCategory === 'All' || p.game === selectedCategory) && p.pack.toLowerCase().includes(searchTerm.toLowerCase())).map(p => (
+                                        <div key={p.id} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 active:scale-[0.98] transition-transform duration-100">
+                                            <div className="flex justify-between mb-2"><span className="text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 px-2 py-1 rounded">{p.game}</span></div>
+                                            <h3 className="font-bold text-slate-800 mb-4 line-clamp-2 min-h-[2.5rem]">{p.pack}</h3>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button onClick={() => handleMakeSale(p, 'wholesale')} className="py-3 rounded-xl bg-slate-50 text-slate-500 font-bold text-xs border border-slate-100 flex flex-col items-center"><span>{formatNum(p.wholesale)}</span><span className="text-[9px] opacity-50">ສົ່ງ</span></button>
+                                                <button onClick={() => handleMakeSale(p, 'retail')} className="py-3 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg shadow-slate-200 flex flex-col items-center"><span>{formatNum(p.retail)}</span><span className="text-[9px] text-slate-400">ຂາຍ</span></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-    document.querySelector('.tab-btn').click();
+                        {activeTab === 'stock' && (
+                            <div className="space-y-6 animate-slide-up">
+                                <div className="flex justify-between items-end">
+                                    <h2 className="text-xl font-black text-slate-900">ຄັງສິນຄ້າ</h2>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setIsBulkModalOpen(true)} className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600"><Icon name="layers" size={18}/></button>
+                                        <button onClick={() => { setEditingProduct(null); setFormData({ game: 'ML', pack: '', cost: 0, wholesale: 0, retail: 0, creditsUsed: 0, currentRate: 410 }); setIsModalOpen(true); }} className="px-4 h-10 bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg"><Icon name="plus" size={16}/> ເພີ່ມ</button>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 overflow-x-auto hide-scroll pb-2">
+                                    {categories.map(c => <button key={c} onClick={() => setStockCategory(c)} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border ${stockCategory === c ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'}`}>{c}</button>)}
+                                </div>
+                                <div className="space-y-3">
+                                    {products.filter(p => stockCategory === 'All' || p.game === stockCategory).map(p => (
+                                        <div key={p.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center shadow-sm">
+                                            <div>
+                                                <div className="font-bold text-slate-800 text-sm">{p.pack}</div>
+                                                <div className="text-[10px] text-slate-400 mt-1 flex gap-2">
+                                                    <span className="bg-slate-100 px-1.5 rounded">{p.game}</span>
+                                                    <span>ທຶນ: {formatNum(p.cost)}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-right"><div className="font-black text-slate-800">{formatNum(p.retail)}</div><div className="text-[10px] text-emerald-500 font-bold">+{formatNum(p.profit)}</div></div>
+                                                <button onClick={() => { setEditingProduct(p); setFormData(p); setIsModalOpen(true); }} className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400"><Icon name="pencil" size={14}/></button>
+                                                <button onClick={() => handleProductDelete(p.id)} className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-400"><Icon name="trash-2" size={14}/></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-</script>
+                        {activeTab === 'expenses' && (
+                            <div className="space-y-6 animate-slide-up">
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-xl font-black text-slate-900">ລາຍຈ່າຍ</h2>
+                                    <button onClick={() => setIsExpenseModalOpen(true)} className="px-4 py-2 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-red-200">+ ເພີ່ມ</button>
+                                </div>
+                                <div className="space-y-3">
+                                    {expenses.map(e => (
+                                        <div key={e.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
+                                            <div><div className="font-bold text-slate-800">{e.title}</div><div className="text-[10px] text-slate-400">{e.timestamp} | {e.note}</div></div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-black text-red-500">-{formatNum(e.amount)}</span>
+                                                <button onClick={() => handleDeleteExpense(e.id)} className="text-slate-300 p-2"><Icon name="trash-2" size={16}/></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {expenses.length === 0 && <div className="text-center py-10 text-slate-400 text-sm">ບໍ່ມີລາຍຈ່າຍ</div>}
+                                </div>
+                            </div>
+                        )}
 
+                        {activeTab === 'history' && (
+                            <div className="space-y-6 animate-slide-up">
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-xl font-black text-slate-900">ປະຫວັດ</h2>
+                                    <button onClick={() => setIsDeleteConfirmOpen(true)} className="px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-bold border border-red-100 active:bg-red-100">ລຶບທັງໝົດ</button>
+                                </div>
+                                <div className="space-y-3">
+                                    {sales.map(s => (
+                                        <div key={s.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
+                                            <div>
+                                                <div className="font-bold text-slate-800 text-sm">{s.productName}</div>
+                                                <div className="text-[10px] text-slate-400 mt-0.5">{s.timestamp}</div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-right">
+                                                    <div className="font-black text-slate-800">{formatNum(s.price)}</div>
+                                                    <div className="text-[10px] text-emerald-500 font-bold">+{formatNum(s.profit)}</div>
+                                                </div>
+                                                <button onClick={() => handleDeleteSale(s.id)} className="text-red-300 p-2"><Icon name="trash-2" size={16}/></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="h-8"></div>
+                    </main>
+
+                    {/* Mobile Navigation */}
+                    <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 pb-safe z-40">
+                        <div className="flex justify-around items-center h-16 px-2">
+                            {['dashboard', 'sales', 'stock', 'expenses', 'history'].map(id => (
+                                <button key={id} onClick={() => setActiveTab(id)} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${activeTab === id ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                    <div className={`p-1.5 rounded-xl transition-all ${activeTab === id ? 'bg-indigo-50 translate-y-[-2px]' : ''}`}>
+                                        <Icon name={id === 'dashboard' ? 'layout-grid' : id === 'sales' ? 'shopping-cart' : id === 'stock' ? 'package' : id === 'expenses' ? 'wallet' : 'history'} size={20} />
+                                    </div>
+                                    <span className="text-[9px] font-bold capitalize">{id}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* MODAL: Product Form */}
+                    {isModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 md:p-4">
+                            <div className="bg-white w-full md:max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 pb-safe shadow-2xl animate-slide-up max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-black text-slate-900">{editingProduct ? 'ແກ້ໄຂ' : 'ເພີ່ມສິນຄ້າ'}</h2>
+                                    <button onClick={() => setIsModalOpen(false)} className="p-2 bg-slate-100 rounded-full"><Icon name="x" size={20}/></button>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="col-span-1 space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Game</label><input list="game-list" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold outline-none" value={formData.game} onChange={e => setFormData({...formData, game: e.target.value})} /><datalist id="game-list">{categories.filter(c => c !== 'All').map(c => <option key={c} value={c}/>)}</datalist></div>
+                                        <div className="col-span-2 space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Pack Name</label><input className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold outline-none" value={formData.pack} onChange={e => setFormData({...formData, pack: e.target.value})} /></div>
+                                    </div>
+                                    <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 space-y-3">
+                                        <div className="text-indigo-600 text-[10px] font-black uppercase flex gap-1"><Icon name="calculator" size={12}/> Cost Calc</div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1"><label className="text-[10px] font-bold text-indigo-400">Credits</label><input type="text" inputMode="decimal" className="w-full bg-white rounded-xl p-2.5 font-bold text-slate-800 outline-none" value={formData.creditsUsed} onChange={e => setFormData({...formData, creditsUsed: e.target.value})} /></div>
+                                            <div className="space-y-1"><label className="text-[10px] font-bold text-indigo-400">Rate</label><input type="number" className="w-full bg-white rounded-xl p-2.5 font-bold text-slate-800 outline-none" value={formData.currentRate} onChange={e => setFormData({...formData, currentRate: Number(e.target.value)})} /></div>
+                                        </div>
+                                        <div className="pt-2 border-t border-indigo-200/50 flex justify-between items-center"><span className="text-xs font-bold text-indigo-400">Cost</span><span className="text-xl font-black text-indigo-700">{formatNum(formData.cost)}</span></div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Wholesale</label><input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold outline-none" value={formData.wholesale} onChange={e => setFormData({...formData, wholesale: Number(e.target.value)})} /></div>
+                                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Retail</label><input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold outline-none" value={formData.retail} onChange={e => setFormData({...formData, retail: Number(e.target.value)})} /></div>
+                                    </div>
+                                    <button onClick={handleProductSave} className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold shadow-xl">ບັນທຶກ</button>
+                                    <div className="h-4 md:hidden"></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Expense Modal */}
+                    {isExpenseModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 md:p-4">
+                            <div className="bg-white w-full md:max-w-sm rounded-t-[2rem] md:rounded-[2rem] p-6 pb-safe shadow-2xl animate-slide-up">
+                                <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-black text-slate-900">ເພີ່ມລາຍຈ່າຍ</h2><button onClick={() => setIsExpenseModalOpen(false)} className="p-2 bg-slate-100 rounded-full"><Icon name="x" size={20}/></button></div>
+                                <div className="space-y-4">
+                                    <input className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold outline-none" placeholder="ຫົວຂໍ້..." value={expenseForm.title} onChange={e => setExpenseForm({...expenseForm, title: e.target.value})} />
+                                    <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold outline-none" placeholder="ຈຳນວນເງິນ..." value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} />
+                                    <input className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-medium outline-none" placeholder="ໝາຍເຫດ..." value={expenseForm.note} onChange={e => setExpenseForm({...expenseForm, note: e.target.value})} />
+                                    <button onClick={handleAddExpense} className="w-full bg-red-500 text-white py-4 rounded-xl font-bold shadow-lg">ບັນທຶກ</button>
+                                    <div className="h-4 md:hidden"></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {isBulkModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 md:p-4">
+                            <div className="bg-white w-full md:max-w-sm rounded-t-[2rem] md:rounded-[2rem] p-6 pb-safe shadow-2xl animate-slide-up">
+                                <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-black text-slate-900">ປ່ຽນເລດ</h2><button onClick={() => setIsBulkModalOpen(false)} className="p-2 bg-slate-100 rounded-full"><Icon name="x" size={20}/></button></div>
+                                <div className="space-y-4">
+                                    <div className="flex flex-wrap gap-2">{categories.filter(c => c !== 'All').map(c => <button key={c} onClick={() => setBulkData({...bulkData, category: c})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${bulkData.category === c ? 'bg-indigo-600 text-white' : 'bg-slate-50'}`}>{c}</button>)}</div>
+                                    <input type="number" placeholder="ເລດໃໝ່..." className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 font-black text-xl text-center outline-none" value={bulkData.newRate} onChange={e => setBulkData({...bulkData, newRate: e.target.value})} />
+                                    <button onClick={handleBulkUpdate} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg">ອັບເດດ</button>
+                                    <div className="h-4 md:hidden"></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 🔥 NEW: Generic Delete Confirmation Modal */}
+                    {confirmation.isOpen && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-scale">
+                            <div className="bg-white w-full max-w-xs rounded-[2rem] p-6 shadow-2xl">
+                                <h3 className="text-lg font-black text-slate-900 mb-4 text-center">{confirmation.title}</h3>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setConfirmation({ isOpen: false, type: null, id: null, title: '' })} className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold text-xs">ຍົກເລີກ</button>
+                                    <button onClick={handleConfirmAction} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-red-200">ຢືນຢັນລຶບ</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Delete All Confirmation Modal */}
+                    {isDeleteConfirmOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-scale">
+                            <div className="bg-white w-full max-w-xs rounded-[2rem] p-6 shadow-2xl">
+                                <h3 className="text-lg font-black text-slate-900 mb-2 text-center">ຢືນຢັນການລຶບທັງໝົດ</h3>
+                                <p className="text-xs text-slate-500 text-center mb-4">ກະລຸນາໃສ່ລະຫັດ (admin) ເພື່ອຢືນຢັນ</p>
+                                <input 
+                                    type="password" 
+                                    placeholder="ລະຫັດຜ່ານ..." 
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-center outline-none mb-4 focus:ring-2 focus:ring-red-500" 
+                                    value={deletePassword}
+                                    onChange={e => setDeletePassword(e.target.value)}
+                                />
+                                <div className="flex gap-2">
+                                    <button onClick={() => setIsDeleteConfirmOpen(false)} className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold text-xs">ຍົກເລີກ</button>
+                                    <button onClick={confirmDeleteAll} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-red-200">ຢືນຢັນລຶບ</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
