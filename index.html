@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ສະຕ໋ອກເຄື່ອງລຸງແມັກ - Cloud POS</title>
+    <title>ສະຕ໋ອກເຄື່ອງລຸງແມັກ - Colorful POS</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -20,15 +20,28 @@
                 extend: {
                     fontFamily: { sans: ['Noto Sans Lao', 'sans-serif'] },
                     colors: {
-                        primary: '#4f46e5', // Indigo 600
-                        secondary: '#7c3aed', // Violet 600
-                        dark: '#0f172a',
-                        surface: '#ffffff',
-                        background: '#f8fafc' // Slate 50
+                        primary: '#6366f1', 
+                        secondary: '#ec4899', 
+                        accent: '#8b5cf6',
                     },
                     boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'glow': '0 0 20px rgba(79, 70, 229, 0.15)',
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                        'glow-primary': '0 0 20px rgba(99, 102, 241, 0.4)',
+                        'glow-secondary': '0 0 20px rgba(236, 72, 153, 0.4)',
+                    },
+                    animation: {
+                        'pop': 'pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { transform: 'scale(0.95) translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'scale(1) translateY(0)', opacity: '1' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' },
+                        }
                     }
                 }
             }
@@ -36,23 +49,38 @@
     </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f8fafc; color: #334155; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700;800;900&display=swap');
+        body { 
+            font-family: 'Noto Sans Lao', sans-serif; 
+            background: radial-gradient(circle at top right, #e0e7ff, #f3e8ff, #fce7f3, #ffffff);
+            background-attachment: fixed;
+            color: #334155; 
+        }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        .animate-enter { animation: enter 0.3s ease-out forwards; }
-        @keyframes enter { 
-            from { opacity: 0; transform: translateY(8px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(100, 110, 140, 0.05);
         }
-        /* Custom scrollbar for tables */
-        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; border: 2px solid transparent; background-clip: padding-box; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; border: 2px solid transparent; background-clip: padding-box; }
     </style>
 </head>
-<body class="antialiased selection:bg-indigo-100 selection:text-indigo-700">
+<body class="antialiased selection:bg-pink-200 selection:text-pink-900 min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -109,7 +137,7 @@
             
             // Form Data
             const [formData, setFormData] = useState({ 
-                game: 'ML', pack: '', cost: 0, wholesale: 0, retail: 0, creditsUsed: 0, currentRate: 410, imageUrl: ''
+                productType: 'game', game: 'ML', pack: '', cost: 0, wholesale: 0, retail: 0, creditsUsed: 0, currentRate: 410, imageUrl: '', faceValue: 0, discountPercent: 0
             });
             const [bulkData, setBulkData] = useState({ category: '', newRate: 0 });
             const [expenseForm, setExpenseForm] = useState({ title: '', amount: 0, note: '', category: 'ອື່ນໆ' });
@@ -154,11 +182,19 @@
                     if (typeof val === 'number') return val;
                     return Number(val.replace(',', '.'));
                 };
-                const credits = parseVal(formData.creditsUsed);
-                const rate = parseVal(formData.currentRate);
-                const cost = credits * rate;
-                if (cost >= 0 && cost !== formData.cost) setFormData(prev => ({ ...prev, cost }));
-            }, [formData.creditsUsed, formData.currentRate]);
+                
+                if (formData.productType === 'topup') {
+                    const face = parseVal(formData.faceValue);
+                    const disc = parseVal(formData.discountPercent);
+                    const cost = face - (face * (disc / 100));
+                    if (cost >= 0 && cost !== formData.cost) setFormData(prev => ({ ...prev, cost }));
+                } else {
+                    const credits = parseVal(formData.creditsUsed);
+                    const rate = parseVal(formData.currentRate);
+                    const cost = credits * rate;
+                    if (cost >= 0 && cost !== formData.cost) setFormData(prev => ({ ...prev, cost }));
+                }
+            }, [formData.creditsUsed, formData.currentRate, formData.faceValue, formData.discountPercent, formData.productType]);
 
             // Handlers
             const handleMakeSale = async (product, type) => {
@@ -183,7 +219,18 @@
             const handleProductSave = async () => {
                 if(!user) return;
                 const finalCredits = typeof formData.creditsUsed === 'string' ? parseFloat(formData.creditsUsed.replace(',', '.')) : formData.creditsUsed;
-                const data = { ...formData, creditsUsed: finalCredits || 0, profit: formData.retail - formData.cost, createdAt: Date.now() };
+                const finalFaceValue = typeof formData.faceValue === 'string' ? parseFloat(formData.faceValue.replace(',', '.')) : formData.faceValue;
+                const finalDiscount = typeof formData.discountPercent === 'string' ? parseFloat(formData.discountPercent.replace(',', '.')) : formData.discountPercent;
+                
+                const data = { 
+                    ...formData, 
+                    productType: formData.productType || 'game',
+                    creditsUsed: finalCredits || 0, 
+                    faceValue: finalFaceValue || 0,
+                    discountPercent: finalDiscount || 0,
+                    profit: formData.retail - formData.cost, 
+                    createdAt: Date.now() 
+                };
 
                 try {
                     if (editingProduct) await db.collection('products').doc(editingProduct.id).update(data);
@@ -272,6 +319,7 @@
                     try {
                         const batch = db.batch();
                         products.filter(p => p.game === bulkData.category).forEach(doc => {
+                            if (doc.productType === 'topup') return; 
                             const newCost = doc.creditsUsed * bulkData.newRate;
                             batch.update(db.collection('products').doc(doc.id), { currentRate: Number(bulkData.newRate), cost: newCost, profit: doc.retail - newCost });
                         });
@@ -328,139 +376,134 @@
                 return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 5);
             }, [sales]);
 
-            if (authError) return <div className="h-screen flex items-center justify-center bg-red-50 text-red-600 p-10 font-bold">{authError}</div>;
-            if (loading && !products.length) return <div className="h-screen flex items-center justify-center bg-[#f8fafc]"><div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div></div>;
+            if (authError) return <div className="h-screen flex items-center justify-center bg-rose-50 text-rose-600 p-10 font-bold">{authError}</div>;
+            if (loading && !products.length) return <div className="h-screen flex items-center justify-center"><div className="w-16 h-16 border-4 border-indigo-200 border-t-pink-500 rounded-full animate-spin shadow-glow-secondary"></div></div>;
 
             return (
                 <div className="flex min-h-screen">
                     
-                    {/* Sidebar - Modernized */}
-                    <aside className="hidden md:flex w-[260px] flex-col fixed inset-y-0 bg-white border-r border-slate-200/60 z-20 shadow-sm">
-                        <div className="p-6 pb-2">
-                            <div className="flex items-center gap-3 text-indigo-600 mb-1">
-                                <div className="p-2.5 bg-indigo-50 rounded-xl"><Icon name="boxes" size={22} /></div>
-                                <span className="text-[1.15rem] font-extrabold tracking-tight text-slate-800">ລຸງແມັກສະຕ໋ອກ</span>
+                    {/* Sidebar - Colorful Glass */}
+                    <aside className="hidden md:flex w-[280px] flex-col fixed inset-y-4 left-4 glass-panel rounded-3xl z-20">
+                        <div className="p-6 pb-4">
+                            <div className="flex items-center gap-3 mb-1">
+                                <div className="p-3 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-2xl text-white shadow-glow-secondary animate-float"><Icon name="boxes" size={24} /></div>
+                                <div>
+                                    <span className="text-[1.25rem] font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600">ລຸງແມັກສະຕ໋ອກ</span>
+                                    <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Playful POS</div>
+                                </div>
                             </div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-14">Cloud POS System</div>
                         </div>
-                        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scroll">
+                        <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto custom-scroll">
                             {[
-                                { id: 'dashboard', icon: 'layout-dashboard', label: 'ພາບລວມ' },
-                                { id: 'sales', icon: 'shopping-cart', label: 'ຂາຍສິນຄ້າ' },
-                                { id: 'stock', icon: 'package', label: 'ຄັງສິນຄ້າ' },
-                                { id: 'expenses', icon: 'wallet', label: 'ລາຍຈ່າຍ' },
-                                { id: 'daily', icon: 'bar-chart-3', label: 'ສະຫຼຸບຍອດ' },
-                                { id: 'history', icon: 'history', label: 'ປະຫວັດ' }
+                                { id: 'dashboard', icon: 'layout-dashboard', label: 'ພາບລວມ', color: 'from-blue-500 to-indigo-500' },
+                                { id: 'sales', icon: 'shopping-cart', label: 'ຂາຍສິນຄ້າ', color: 'from-pink-500 to-rose-500' },
+                                { id: 'stock', icon: 'package', label: 'ຄັງສິນຄ້າ', color: 'from-amber-400 to-orange-500' },
+                                { id: 'expenses', icon: 'wallet', label: 'ລາຍຈ່າຍ', color: 'from-emerald-400 to-teal-500' },
+                                { id: 'daily', icon: 'bar-chart-3', label: 'ສະຫຼຸບຍອດ', color: 'from-cyan-400 to-blue-500' },
+                                { id: 'history', icon: 'history', label: 'ປະຫວັດ', color: 'from-violet-500 to-purple-500' }
                             ].map(item => (
                                 <button key={item.id} onClick={() => setActiveTab(item.id)}
-                                    className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 group ${
-                                        activeTab === item.id ? 'bg-indigo-600 text-white shadow-glow' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'
+                                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 group ${
+                                        activeTab === item.id 
+                                        ? `bg-gradient-to-r ${item.color} text-white shadow-lg hover:scale-[1.02] translate-x-1` 
+                                        : 'text-slate-500 hover:bg-white/60 hover:text-indigo-600 hover:translate-x-1'
                                     }`}>
-                                    <Icon name={item.icon} size={18} className={activeTab === item.id ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'} />
+                                    <div className={`p-1.5 rounded-xl transition-colors ${activeTab === item.id ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-indigo-100'}`}>
+                                        <Icon name={item.icon} size={18} className={activeTab === item.id ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'} />
+                                    </div>
                                     {item.label}
                                 </button>
                             ))}
                         </nav>
-                        <div className="p-4 border-t border-slate-100">
-                            <div className="flex items-center gap-3 px-2 py-2">
-                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs border border-slate-200">A</div>
+                        <div className="p-4 border-t border-white/40 mt-auto">
+                            <div className="flex items-center gap-3 px-3 py-3 bg-white/50 rounded-2xl border border-white hover:bg-white/80 transition-colors cursor-pointer">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-black text-sm shadow-md">A</div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-slate-700 truncate">ຜູ້ເບິ່ງແຍງລະບົບ</p>
-                                    <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online</p>
+                                    <p className="text-sm font-extrabold text-slate-700 truncate">ຜູ້ເບິ່ງແຍງລະບົບ</p>
+                                    <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-1.5 mt-0.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></span> ອອນລາຍ</p>
                                 </div>
                             </div>
                         </div>
                     </aside>
 
                     {/* Main Content */}
-                    <main className="flex-1 md:ml-[260px] p-4 md:p-8 pb-32 md:pb-12 max-w-[1400px] mx-auto w-full relative">
+                    <main className="flex-1 md:ml-[300px] p-4 md:p-8 pb-32 md:pb-12 max-w-[1400px] mx-auto w-full relative">
                         {/* Mobile Header */}
-                        <div className="md:hidden flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-soft border border-slate-100">
-                            <span className="font-extrabold text-lg text-slate-800 flex items-center gap-2"><div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><Icon name="boxes" size={20} /></div> ລຸງແມັກສະຕ໋ອກ</span>
-                            <div className="w-8 h-8 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center text-slate-600 font-bold text-xs">A</div>
+                        <div className="md:hidden flex justify-between items-center mb-6 glass-panel p-4 rounded-3xl">
+                            <span className="font-extrabold text-lg bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600 flex items-center gap-2">
+                                <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-xl text-white shadow-sm"><Icon name="boxes" size={20} /></div> ລຸງແມັກສະຕ໋ອກ
+                            </span>
+                            <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">A</div>
                         </div>
 
                         {activeTab === 'dashboard' && (
-                            <div className="space-y-6 animate-enter">
-                                <div><h1 className="text-2xl font-extrabold text-slate-800 mb-1">ສະບາຍດີ, ແອັດມິນ 👋</h1><p className="text-slate-500 text-sm">ພາບລວມທຸລະກິດ ແລະ ສະຖິຕິການຂາຍຂອງທ່ານ.</p></div>
+                            <div className="space-y-6 animate-pop">
+                                <div><h1 className="text-3xl font-black text-slate-800 mb-1 tracking-tight">ສະບາຍດີ, ແອັດມິນ ✨</h1><p className="text-slate-500 text-sm font-medium">ຍິນດີຕ້ອນຮັບສູ່ລະບົບຈັດການທີ່ສົດໃສທີ່ສຸດ!</p></div>
                                 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                    <StatCard label="ຍອດຂາຍລວມ" value={totalSales} icon="banknote" color="indigo" />
-                                    
-                                    {/* Modern Gradient Profit Card */}
-                                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-[1.5rem] shadow-lg flex items-center gap-5 relative overflow-hidden group">
-                                        <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-colors"></div>
-                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/10 text-emerald-400 backdrop-blur-sm border border-white/10"><Icon name="trending-up" size={24} /></div>
-                                        <div className="relative z-10">
-                                            <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">ກຳໄລສຸດທິ (Net Profit)</p>
-                                            <div className="flex items-baseline gap-1.5">
-                                                <p className="text-2xl font-black text-white">{formatNum(netProfit)}</p><span className="text-sm text-slate-400 font-bold">₭</span>
-                                            </div>
-                                            <p className="text-[10px] text-slate-400 mt-1.5 bg-white/5 inline-block px-2 py-0.5 rounded-full">ຫັກລາຍຈ່າຍ {formatNum(totalExpenses)} ₭ ແລ້ວ</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <StatCard label="ຈຳນວນອໍເດີທັງໝົດ" value={sales.length} icon="shopping-bag" color="orange" isMoney={false} />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <StatCard label="ຍອດຂາຍລວມມື້ນີ້" value={totalSales} icon="banknote" gradient="from-blue-500 to-indigo-500" />
+                                    <StatCard label="ກຳໄລສຸດທິ (Net Profit)" value={netProfit} icon="trending-up" gradient="from-pink-500 to-rose-500" subtext={`ຫັກລາຍຈ່າຍ ${formatNum(totalExpenses)} ₭ ແລ້ວ`} />
+                                    <StatCard label="ຈຳນວນອໍເດີທັງໝົດ" value={sales.length} icon="shopping-bag" gradient="from-amber-400 to-orange-500" isMoney={false} />
                                 </div>
 
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                                    <div className="bg-white rounded-[1.5rem] p-6 shadow-soft border border-slate-100 flex flex-col">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="glass-card rounded-[2rem] p-6 shadow-glass flex flex-col hover:-translate-y-1 transition-transform duration-300">
                                         <div className="flex items-center justify-between mb-5">
-                                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><Icon name="clock" size={16}/></div> ຂາຍລ່າສຸດ</h3>
+                                            <h3 className="font-extrabold text-slate-800 flex items-center gap-2.5"><div className="p-2 bg-indigo-100 rounded-xl text-indigo-600"><Icon name="clock" size={18}/></div> ຂາຍລ່າສຸດ</h3>
                                         </div>
                                         <div className="flex-1 overflow-x-auto custom-scroll">
                                             <table className="w-full text-left text-sm">
-                                                <tbody className="divide-y divide-slate-50">
+                                                <tbody className="divide-y divide-slate-100/50">
                                                     {sales.slice(0, 5).map(s => (
-                                                        <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                                                            <td className="py-3.5 pr-4 font-semibold text-slate-700">{s.productName}</td>
-                                                            <td className="py-3.5 text-right font-bold text-slate-900">{formatNum(s.price)}</td>
+                                                        <tr key={s.id} className="hover:bg-white/50 transition-colors group">
+                                                            <td className="py-4 pr-4 font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{s.productName}</td>
+                                                            <td className="py-4 text-right font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{formatNum(s.price)}</td>
                                                         </tr>
                                                     ))}
-                                                    {sales.length === 0 && <tr><td colSpan="2" className="py-8 text-center text-slate-400">ຍັງບໍ່ມີອໍເດີ</td></tr>}
+                                                    {sales.length === 0 && <tr><td colSpan="2" className="py-8 text-center text-slate-400 font-bold">ຍັງບໍ່ມີອໍເດີເທື່ອ ~</td></tr>}
                                                 </tbody>
                                             </table>
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-white rounded-[1.5rem] p-6 shadow-soft border border-slate-100 flex flex-col">
+                                    <div className="glass-card rounded-[2rem] p-6 shadow-glass flex flex-col hover:-translate-y-1 transition-transform duration-300">
                                         <div className="flex items-center justify-between mb-5">
-                                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><div className="p-1.5 bg-orange-50 rounded-lg text-orange-500"><Icon name="flame" size={16}/></div> ສິນຄ້າຂາຍດີ</h3>
+                                            <h3 className="font-extrabold text-slate-800 flex items-center gap-2.5"><div className="p-2 bg-orange-100 rounded-xl text-orange-600"><Icon name="flame" size={18}/></div> ສິນຄ້າຂາຍດີ</h3>
                                         </div>
                                         <div className="flex-1 overflow-x-auto custom-scroll">
                                             <table className="w-full text-left text-sm">
-                                                <tbody className="divide-y divide-slate-50">
+                                                <tbody className="divide-y divide-slate-100/50">
                                                     {topSellingProducts.map((p, index) => (
-                                                        <tr key={p.name} className="hover:bg-slate-50/50 transition-colors">
-                                                            <td className="py-3 pr-3 w-8">
-                                                                <span className={`w-6 h-6 flex items-center justify-center rounded-lg text-[10px] font-black ${index === 0 ? 'bg-yellow-100 text-yellow-600' : index === 1 ? 'bg-slate-100 text-slate-500' : index === 2 ? 'bg-orange-50 text-orange-700' : 'bg-slate-50 text-slate-400'}`}>
-                                                                    {index + 1}
+                                                        <tr key={p.name} className="hover:bg-white/50 transition-colors group">
+                                                            <td className="py-3.5 pr-3 w-10">
+                                                                <span className={`w-8 h-8 flex items-center justify-center rounded-xl text-xs font-black shadow-sm ${index === 0 ? 'bg-gradient-to-br from-yellow-300 to-amber-500 text-white' : index === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-white' : index === 2 ? 'bg-gradient-to-br from-orange-300 to-rose-400 text-white' : 'bg-white text-slate-400'}`}>
+                                                                    #{index + 1}
                                                                 </span>
                                                             </td>
-                                                            <td className="py-3 font-semibold text-slate-700">{p.name}</td>
-                                                            <td className="py-3 text-right">
-                                                                <span className="font-bold text-slate-800 bg-slate-50 px-2 py-1 rounded-md">{p.count}</span>
+                                                            <td className="py-3.5 font-bold text-slate-700 group-hover:text-orange-500 transition-colors">{p.name}</td>
+                                                            <td className="py-3.5 text-right">
+                                                                <span className="font-black text-slate-800 bg-white/80 px-2.5 py-1 rounded-lg border border-slate-100">{p.count}</span>
                                                             </td>
                                                         </tr>
                                                     ))}
-                                                    {topSellingProducts.length === 0 && <tr><td colSpan="3" className="py-8 text-center text-slate-400">ບໍ່ມີຂໍ້ມູນ</td></tr>}
+                                                    {topSellingProducts.length === 0 && <tr><td colSpan="3" className="py-8 text-center text-slate-400 font-bold">ບໍ່ມີຂໍ້ມູນ ~</td></tr>}
                                                 </tbody>
                                             </table>
                                         </div>
                                     </div>
 
-                                    <div className="bg-white rounded-[1.5rem] p-6 shadow-soft border border-slate-100 flex flex-col">
+                                    <div className="glass-card rounded-[2rem] p-6 shadow-glass flex flex-col hover:-translate-y-1 transition-transform duration-300">
                                         <div className="flex items-center justify-between mb-5">
-                                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><div className="p-1.5 bg-red-50 rounded-lg text-red-500"><Icon name="wallet" size={16}/></div> ລາຍຈ່າຍລ່າສຸດ</h3>
+                                            <h3 className="font-extrabold text-slate-800 flex items-center gap-2.5"><div className="p-2 bg-rose-100 rounded-xl text-rose-600"><Icon name="wallet" size={18}/></div> ລາຍຈ່າຍລ່າສຸດ</h3>
                                         </div>
                                         <div className="flex-1 overflow-x-auto custom-scroll">
                                             <table className="w-full text-left text-sm">
-                                                <tbody className="divide-y divide-slate-50">
-                                                    {expenses.length === 0 ? <tr><td colSpan="2" className="py-8 text-center text-slate-400">ບໍ່ມີລາຍຈ່າຍ</td></tr> : 
+                                                <tbody className="divide-y divide-slate-100/50">
+                                                    {expenses.length === 0 ? <tr><td colSpan="2" className="py-8 text-center text-slate-400 font-bold">ບໍ່ມີລາຍຈ່າຍ ~</td></tr> : 
                                                     expenses.slice(0, 5).map(e => (
-                                                        <tr key={e.id} className="hover:bg-slate-50/50 transition-colors">
-                                                            <td className="py-3.5 pr-4 font-semibold text-slate-700">{e.title}</td>
-                                                            <td className="py-3.5 text-right font-bold text-red-500">-{formatNum(e.amount)}</td>
+                                                        <tr key={e.id} className="hover:bg-white/50 transition-colors group">
+                                                            <td className="py-4 pr-4 font-bold text-slate-700">{e.title}</td>
+                                                            <td className="py-4 text-right font-black text-rose-500 bg-rose-50/30 rounded-r-xl">-{formatNum(e.amount)}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -472,72 +515,81 @@
                         )}
 
                         {activeTab === 'sales' && (
-                            <div className="space-y-6 animate-enter flex flex-col h-[calc(100vh-6rem)] md:h-auto">
-                                <div className="flex flex-col gap-3 sticky top-0 bg-[#f8fafc]/90 backdrop-blur-xl py-2 z-10 -mx-4 px-4 sm:mx-0 sm:px-0">
+                            <div className="animate-pop flex flex-col h-[calc(100vh-6rem)] md:h-auto gap-4">
+                                <div className="flex flex-col gap-4 sticky top-0 bg-white/40 backdrop-blur-2xl py-3 z-10 -mx-4 px-4 sm:mx-0 sm:px-0 rounded-b-3xl sm:rounded-3xl shadow-sm border border-white">
                                     <div className="flex flex-col sm:flex-row gap-3">
-                                        <div className="relative flex-1">
-                                            <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                            <input type="text" placeholder="ຄົ້ນຫາແພັກເກມ..." className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium text-slate-700 outline-none transition-all" 
-                                                value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                        <div className="relative flex-1 group">
+                                            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-indigo-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+                                            <div className="relative flex items-center bg-white rounded-2xl">
+                                                <Icon name="search" className="absolute left-4 text-indigo-400" size={20} />
+                                                <input type="text" placeholder="ຄົ້ນຫາແພັກເກມທີ່ຕ້ອງການ..." className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 outline-none transition-all bg-transparent" 
+                                                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                            </div>
                                         </div>
-                                        <div className="relative w-full sm:w-48">
+                                        <div className="relative w-full sm:w-56">
                                             <select 
-                                                className="w-full appearance-none bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm text-slate-600 font-semibold focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition-all"
+                                                className="w-full appearance-none bg-white/80 backdrop-blur-md px-4 py-3.5 rounded-2xl border border-white shadow-sm text-slate-700 font-extrabold focus:ring-2 focus:ring-pink-500 outline-none cursor-pointer transition-all hover:bg-white"
                                                 value={sortBy} onChange={e => setSortBy(e.target.value)}
                                             >
-                                                <option value="name-asc">ລຽງຕາມຊື່ (A-Z)</option>
-                                                <option value="price-asc">ລາຄາ (ຖືກ-ແພງ)</option>
-                                                <option value="price-desc">ລາຄາ (ແພງ-ຖືກ)</option>
+                                                <option value="name-asc">🔤 ລຽງຕາມຊື່ (A-Z)</option>
+                                                <option value="price-asc">📉 ລາຄາ (ຖືກ-ແພງ)</option>
+                                                <option value="price-desc">📈 ລາຄາ (ແພງ-ຖືກ)</option>
                                             </select>
-                                            <Icon name="chevron-down" size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"/>
+                                            <Icon name="chevron-down" size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"/>
                                         </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 pb-2">
+                                    <div className="flex flex-wrap gap-2.5 pb-1">
                                         {categories.map(c => (
                                             <button key={c} onClick={() => setSelectedCategory(c)} 
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                                                    selectedCategory === c ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'
+                                                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-300 transform hover:-translate-y-1 shadow-sm border ${
+                                                    selectedCategory === c 
+                                                    ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-transparent shadow-glow-secondary' 
+                                                    : 'bg-white/80 text-slate-600 border-white hover:border-indigo-200 hover:bg-white hover:shadow-md'
                                                 }`}>
                                                 {c !== 'All' && categoryImages[c] ? (
-                                                    <img src={categoryImages[c]} alt={c} loading="lazy" className="w-5 h-5 rounded-md object-cover shadow-sm" />
+                                                    <img src={categoryImages[c]} alt={c} loading="lazy" className="w-6 h-6 rounded-xl object-cover shadow-sm bg-white" />
                                                 ) : (
-                                                    <Icon name={c === 'All' ? 'layers' : 'gamepad-2'} size={14} className={selectedCategory === c ? "text-indigo-200" : "text-slate-400"} />
+                                                    <div className={`p-1 rounded-lg ${selectedCategory === c ? 'bg-white/20' : 'bg-slate-100'}`}><Icon name={c === 'All' ? 'sparkles' : 'gamepad-2'} size={14} className={selectedCategory === c ? "text-white" : "text-indigo-400"} /></div>
                                                 )}
                                                 {c}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 pb-24 md:pb-6 overflow-y-auto custom-scroll flex-1 p-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 pb-24 md:pb-6 overflow-y-auto custom-scroll flex-1 pt-2">
                                     {sortedSalesProducts.map(p => (
-                                        <div key={p.id} className="bg-white p-4 rounded-[1.25rem] border border-slate-100 shadow-soft hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group flex flex-col">
-                                            <div className="flex items-center gap-3.5 mb-4">
+                                        <div key={p.id} className="glass-card p-5 rounded-[1.5rem] shadow-glass hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group flex flex-col relative overflow-hidden">
+                                            {/* decorative blob */}
+                                            <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-pink-200/40 to-indigo-200/40 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                                            
+                                            <div className="flex items-center gap-4 mb-5 relative z-10">
                                                 {p.imageUrl ? (
-                                                    <img src={p.imageUrl} alt={p.pack} loading="lazy" className="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-100 bg-slate-50" />
+                                                    <img src={p.imageUrl} alt={p.pack} loading="lazy" className="w-14 h-14 rounded-2xl object-cover shadow-md border-2 border-white bg-white group-hover:scale-110 transition-transform duration-300" />
                                                 ) : (
-                                                    <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-300 border border-indigo-100/50">
-                                                        <Icon name="image" size={20} />
+                                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-100 to-pink-100 flex items-center justify-center text-indigo-400 border-2 border-white shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                        <Icon name="image" size={24} />
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[9px] font-bold uppercase tracking-wider inline-block mb-1">{p.game}</span>
-                                                    <h3 className="font-bold text-slate-800 text-sm leading-tight truncate">{p.pack}</h3>
+                                                    <span className="px-2.5 py-1 rounded-lg bg-white/80 border border-slate-100 text-indigo-600 text-[10px] font-black uppercase tracking-wider inline-block mb-1.5 shadow-sm">{p.game}</span>
+                                                    <h3 className="font-extrabold text-slate-800 text-sm leading-tight truncate group-hover:text-pink-600 transition-colors">{p.pack}</h3>
                                                 </div>
                                             </div>
-                                            <div className="mt-auto grid grid-cols-2 gap-2.5">
-                                                <button onClick={() => handleMakeSale(p, 'wholesale')} className="py-2.5 rounded-lg bg-slate-50 text-slate-600 font-bold text-xs hover:bg-slate-100 hover:text-slate-900 transition-colors flex flex-col items-center justify-center border border-slate-200">
-                                                    <span>{formatNum(p.wholesale)}</span><span className="text-[9px] uppercase font-semibold text-slate-400">ສົ່ງ</span>
+                                            <div className="mt-auto grid grid-cols-2 gap-3 relative z-10">
+                                                <button onClick={() => handleMakeSale(p, 'wholesale')} className="py-3 rounded-xl bg-white/60 text-slate-700 font-extrabold text-xs hover:bg-gradient-to-r hover:from-cyan-400 hover:to-blue-500 hover:text-white transition-all duration-300 flex flex-col items-center justify-center border border-white shadow-sm hover:shadow-glow-primary active:scale-95 group/btn">
+                                                    <span className="text-sm">{formatNum(p.wholesale)}</span><span className="text-[10px] uppercase font-bold text-slate-400 group-hover/btn:text-cyan-100 mt-0.5">ລາຄາສົ່ງ</span>
                                                 </button>
-                                                <button onClick={() => handleMakeSale(p, 'retail')} className="py-2.5 rounded-lg bg-indigo-600 text-white font-bold text-xs shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-colors flex flex-col items-center justify-center active:scale-95">
-                                                    <span>{formatNum(p.retail)}</span><span className="text-[9px] uppercase font-medium text-indigo-200">ຂາຍ</span>
+                                                <button onClick={() => handleMakeSale(p, 'retail')} className="py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-extrabold text-xs shadow-md shadow-pink-500/30 hover:shadow-glow-secondary hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center justify-center border border-pink-400/50 active:scale-95 group/btn">
+                                                    <span className="text-sm">{formatNum(p.retail)}</span><span className="text-[10px] uppercase font-bold text-pink-200 mt-0.5">ຂາຍຍ່ອຍ</span>
                                                 </button>
                                             </div>
                                         </div>
                                     ))}
                                     {sortedSalesProducts.length === 0 && (
-                                        <div className="col-span-full py-16 flex flex-col items-center justify-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
-                                            <Icon name="package-open" size={48} className="mb-3 opacity-20"/>
-                                            <p className="font-semibold">ບໍ່ພົບລາຍການສິນຄ້າ</p>
+                                        <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-400 glass-card rounded-[2rem] border-dashed border-2 border-slate-300/50">
+                                            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4"><Icon name="ghost" size={40} className="text-slate-300 animate-bounce"/></div>
+                                            <p className="font-extrabold text-lg text-slate-500">ບໍ່ພົບລາຍການສິນຄ້າ!</p>
+                                            <p className="text-sm mt-1">ລອງຄົ້ນຫາດ້ວຍຄຳອື່ນເບິ່ງເດີ້</p>
                                         </div>
                                     )}
                                 </div>
@@ -545,81 +597,89 @@
                         )}
 
                         {activeTab === 'stock' && (
-                            <div className="space-y-6 animate-enter">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="space-y-6 animate-pop">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glass-panel p-5 rounded-[2rem]">
                                     <div>
-                                        <h2 className="text-2xl font-extrabold text-slate-800">ຈັດການສິນຄ້າ</h2>
-                                        <p className="text-slate-500 text-sm mt-1">ເພີ່ມ, ແກ້ໄຂ ແລະ ອັບເດດລາຄາສິນຄ້າໃນຄັງ</p>
+                                        <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2"><Icon name="package-search" className="text-accent" /> ຈັດການສິນຄ້າ</h2>
+                                        <p className="text-slate-500 text-sm mt-1 font-medium">ເພີ່ມ, ແກ້ໄຂ ແລະ ອັບເດດລາຄາສິນຄ້າໃນຄັງ</p>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                                        <button onClick={() => setIsBulkModalOpen(true)} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200 transition-all flex">
-                                            <Icon name="layers" size={16}/> ປ່ຽນເລດຍົກໝວດ
+                                    <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                                        <button onClick={() => setIsBulkModalOpen(true)} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-white text-indigo-600 border border-indigo-100 px-5 py-3 rounded-2xl font-black text-xs hover:bg-indigo-50 hover:shadow-md transition-all flex hover:-translate-y-0.5">
+                                            <Icon name="layers" size={18}/> ປ່ຽນເລດຍົກໝວດ
                                         </button>
-                                        <button onClick={() => { setEditingProduct(null); setFormData({ game: 'ML', pack: '', cost: 0, wholesale: 0, retail: 0, creditsUsed: 0, currentRate: 410, imageUrl: '' }); setIsModalOpen(true); }} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-md hover:bg-indigo-700 transition-all flex">
-                                            <Icon name="plus" size={16}/> ເພີ່ມສິນຄ້າໃໝ່
+                                        <button onClick={() => { setEditingProduct(null); setFormData({ productType: 'game', game: 'ML', pack: '', cost: 0, wholesale: 0, retail: 0, creditsUsed: 0, currentRate: 410, imageUrl: '', faceValue: 0, discountPercent: 0 }); setIsModalOpen(true); }} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-gradient-to-r from-indigo-500 to-pink-500 text-white px-5 py-3 rounded-2xl font-black text-xs shadow-glow-secondary hover:-translate-y-0.5 transition-all flex active:scale-95">
+                                            <Icon name="plus-circle" size={18}/> ເພີ່ມສິນຄ້າໃໝ່
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2 pb-2">
+                                <div className="flex flex-wrap gap-2.5 pb-2">
                                     {categories.map(c => (
                                         <button key={c} onClick={() => setStockCategory(c)} 
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                                                stockCategory === c ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-300 shadow-sm border ${
+                                                stockCategory === c 
+                                                ? 'bg-slate-800 text-white border-slate-700 shadow-lg scale-105' 
+                                                : 'bg-white/80 text-slate-600 border-white hover:border-slate-300 hover:bg-white hover:-translate-y-0.5'
                                             }`}>
                                             {c !== 'All' && categoryImages[c] ? (
-                                                <img src={categoryImages[c]} alt={c} loading="lazy" className="w-5 h-5 rounded-md object-cover shadow-sm" />
+                                                <img src={categoryImages[c]} alt={c} loading="lazy" className="w-5 h-5 rounded-lg object-cover bg-white" />
                                             ) : (
-                                                <Icon name={c === 'All' ? 'layers' : 'gamepad-2'} size={14} className={stockCategory === c ? "text-slate-300" : "text-slate-400"} />
+                                                <Icon name={c === 'All' ? 'sparkles' : 'gamepad-2'} size={14} className={stockCategory === c ? "text-slate-300" : "text-slate-400"} />
                                             )}
                                             {c}
                                         </button>
                                     ))}
                                 </div>
 
-                                <div className="bg-white rounded-[1.5rem] border border-slate-200 overflow-hidden shadow-soft">
+                                <div className="glass-card rounded-[2rem] border border-white overflow-hidden shadow-glass">
                                     <div className="overflow-x-auto custom-scroll">
                                         <table className="w-full text-left whitespace-nowrap">
-                                            <thead className="bg-slate-50/80 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-200">
+                                            <thead className="bg-white/40 text-[11px] uppercase text-slate-500 font-extrabold border-b border-white">
                                                 <tr>
-                                                    <th className="px-5 py-4">ສິນຄ້າ</th>
-                                                    <th className="px-5 py-4 text-center">ເຄຣດິດ</th>
-                                                    <th className="px-5 py-4 text-right">ທຶນ</th>
-                                                    <th className="px-5 py-4 text-right">ຂາຍຍ່ອຍ</th>
-                                                    <th className="px-5 py-4 text-center">ຈັດການ</th>
+                                                    <th className="px-6 py-5">ລາຍການສິນຄ້າ</th>
+                                                    <th className="px-6 py-5 text-center">ເຄຣດິດ / %ຫຼຸດ</th>
+                                                    <th className="px-6 py-5 text-right">ຕົ້ນທຶນ</th>
+                                                    <th className="px-6 py-5 text-right">ຂາຍຍ່ອຍ</th>
+                                                    <th className="px-6 py-5 text-center">ຈັດການ</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100 text-sm">
+                                            <tbody className="divide-y divide-white/40 text-sm">
                                                 {products.filter(p => stockCategory === 'All' || p.game === stockCategory).map(p => (
-                                                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                                                        <td className="px-5 py-3">
-                                                            <div className="flex items-center gap-3">
+                                                    <tr key={p.id} className="hover:bg-white/60 transition-colors group">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-4">
                                                                 {p.imageUrl ? (
-                                                                    <img src={p.imageUrl} alt={p.pack} loading="lazy" className="w-10 h-10 rounded-lg object-cover border border-slate-100 bg-slate-50 shadow-sm" />
+                                                                    <img src={p.imageUrl} alt={p.pack} loading="lazy" className="w-12 h-12 rounded-xl object-cover border-2 border-white bg-slate-50 shadow-sm group-hover:scale-110 transition-transform" />
                                                                 ) : (
-                                                                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                                                                        <Icon name="image" size={16} />
+                                                                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-slate-300 border-2 border-slate-100 group-hover:scale-110 transition-transform">
+                                                                        <Icon name="image" size={20} />
                                                                     </div>
                                                                 )}
                                                                 <div>
-                                                                    <div className="font-bold text-slate-800">{p.pack}</div>
-                                                                    <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{p.game}</div>
+                                                                    <div className="font-extrabold text-slate-800">{p.pack}</div>
+                                                                    <div className="text-[10px] font-black text-indigo-500 uppercase mt-1 bg-indigo-50 inline-block px-2 py-0.5 rounded-md">{p.game}</div>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-5 py-3 text-center font-medium text-slate-500 bg-slate-50/30">{p.creditsUsed}</td>
-                                                        <td className="px-5 py-3 text-right font-medium text-slate-500">{formatNum(p.cost)}</td>
-                                                        <td className="px-5 py-3 text-right font-bold text-slate-900 bg-slate-50/30">{formatNum(p.retail)}</td>
-                                                        <td className="px-5 py-3 text-center">
-                                                            <div className="flex justify-center gap-1">
-                                                                <button onClick={() => { setEditingProduct(p); setFormData(p); setIsModalOpen(true); }} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"><Icon name="pencil" size={16}/></button>
-                                                                <button onClick={() => handleProductDelete(p.id)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg transition-colors"><Icon name="trash-2" size={16}/></button>
+                                                        <td className="px-6 py-4 text-center">
+                                                            {p.productType === 'topup' ? (
+                                                                <span className="text-emerald-600 bg-emerald-100 px-2 py-1 rounded-lg font-black text-xs border border-emerald-200 shadow-sm">-{p.discountPercent}%</span>
+                                                            ) : (
+                                                                <span className="font-black text-slate-600 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{p.creditsUsed}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right font-bold text-slate-500">{formatNum(p.cost)}</td>
+                                                        <td className="px-6 py-4 text-right"><span className="font-black text-slate-800 bg-white px-3 py-1.5 rounded-xl shadow-sm border border-slate-100">{formatNum(p.retail)}</span></td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className="flex justify-center gap-2">
+                                                                <button onClick={() => { setEditingProduct(p); setFormData(p); setIsModalOpen(true); }} className="w-10 h-10 flex items-center justify-center text-indigo-500 bg-white hover:bg-indigo-50 hover:text-indigo-600 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100"><Icon name="pencil" size={18}/></button>
+                                                                <button onClick={() => handleProductDelete(p.id)} className="w-10 h-10 flex items-center justify-center text-rose-400 bg-white hover:bg-rose-50 hover:text-rose-600 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100"><Icon name="trash-2" size={18}/></button>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                 ))}
                                                 {products.filter(p => stockCategory === 'All' || p.game === stockCategory).length === 0 && (
-                                                    <tr><td colSpan="5" className="py-12 text-center text-slate-400 font-medium">ບໍ່ມີຂໍ້ມູນສິນຄ້າໃນໝວດນີ້</td></tr>
+                                                    <tr><td colSpan="5" className="py-16 text-center text-slate-400 font-extrabold">ບໍ່ມີຂໍ້ມູນສິນຄ້າໃນໝວດນີ້ 🍃</td></tr>
                                                 )}
                                             </tbody>
                                         </table>
@@ -629,60 +689,59 @@
                         )}
 
                         {activeTab === 'expenses' && (
-                            <div className="space-y-6 animate-enter">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="space-y-6 animate-pop">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glass-panel p-5 rounded-[2rem]">
                                     <div>
-                                        <h2 className="text-2xl font-extrabold text-slate-800">ລາຍຈ່າຍອື່ນໆ</h2>
-                                        <p className="text-slate-500 text-sm mt-1">ບັນທຶກຄ່າໃຊ້ຈ່າຍເພື່ອນຳໄປຫັກລົບກຳໄລ</p>
+                                        <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2"><Icon name="receipt" className="text-rose-500" /> ລາຍຈ່າຍອື່ນໆ</h2>
+                                        <p className="text-slate-500 text-sm mt-1 font-medium">ບັນທຶກຄ່າໃຊ້ຈ່າຍເພື່ອນຳໄປຫັກລົບກຳໄລ</p>
                                     </div>
-                                    <div className="flex gap-2 w-full sm:w-auto">
-                                        <button onClick={handleDeleteAllExpenses} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-white text-rose-600 border border-rose-200 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-rose-50 transition-all flex">
-                                            <Icon name="trash-2" size={16}/> ລຶບທັງໝົດ
+                                    <div className="flex gap-3 w-full sm:w-auto">
+                                        <button onClick={handleDeleteAllExpenses} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-white text-rose-600 border border-rose-100 px-5 py-3 rounded-2xl font-black text-xs hover:bg-rose-50 shadow-sm hover:shadow-md transition-all flex hover:-translate-y-0.5">
+                                            <Icon name="trash-2" size={18}/> ລຶບທັງໝົດ
                                         </button>
-                                        <button onClick={() => setIsExpenseModalOpen(true)} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:bg-rose-600 transition-all flex">
-                                            <Icon name="plus" size={16}/> ເພີ່ມລາຍຈ່າຍ
+                                        <button onClick={() => setIsExpenseModalOpen(true)} className="flex-1 sm:flex-none justify-center items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-glow-secondary hover:-translate-y-0.5 transition-all flex active:scale-95">
+                                            <Icon name="plus" size={18}/> ເພີ່ມລາຍຈ່າຍ
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-[1.5rem] border border-slate-200 overflow-hidden shadow-soft">
+                                <div className="glass-card rounded-[2rem] border border-white overflow-hidden shadow-glass">
                                     <div className="overflow-x-auto custom-scroll">
                                         <table className="w-full text-left whitespace-nowrap">
-                                            <thead className="bg-slate-50/80 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-200">
-                                                <tr><th className="px-5 py-4">ລາຍການ</th><th className="px-5 py-4">ໝາຍເຫດ</th><th className="px-5 py-4 text-right">ຈຳນວນເງິນ</th><th className="px-5 py-4 text-right">ວັນທີ່</th><th className="px-5 py-4 text-center">ລຶບ</th></tr>
+                                            <thead className="bg-white/40 text-[11px] uppercase text-slate-500 font-extrabold border-b border-white">
+                                                <tr><th className="px-6 py-5">ລາຍການ</th><th className="px-6 py-5">ໝາຍເຫດ</th><th className="px-6 py-5 text-right">ຈຳນວນເງິນ</th><th className="px-6 py-5 text-right">ວັນທີ່</th><th className="px-6 py-5 text-center">ຈັດການ</th></tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100 text-sm">
+                                            <tbody className="divide-y divide-white/40 text-sm">
                                                 {expenses.slice(0, visibleExpenses).map(e => (
-                                                    <tr key={e.id} className="hover:bg-slate-50/50 transition-colors">
-                                                        <td className="px-5 py-3.5">
-                                                            <div className="font-bold text-slate-800">{e.title}</div>
-                                                            <div className="text-[10px] font-bold text-rose-500 uppercase bg-rose-50 inline-block px-1.5 py-0.5 rounded mt-1 border border-rose-100">{e.category || 'ອື່ນໆ'}</div>
+                                                    <tr key={e.id} className="hover:bg-white/60 transition-colors group">
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-extrabold text-slate-800 text-base">{e.title}</div>
+                                                            <div className="text-[10px] font-black text-rose-600 uppercase bg-rose-100/80 inline-block px-2 py-1 rounded-lg mt-1 border border-rose-200 shadow-sm">{e.category || 'ອື່ນໆ'}</div>
                                                         </td>
-                                                        <td className="px-5 py-3.5 text-slate-500 text-xs">{e.note || '-'}</td>
-                                                        <td className="px-5 py-3.5 text-right font-black text-rose-500">-{formatNum(e.amount)}</td>
-                                                        <td className="px-5 py-3.5 text-right text-[11px] font-medium text-slate-400">{e.timestamp}</td>
-                                                        <td className="px-5 py-3.5 text-center">
-                                                            <button onClick={() => handleDeleteExpense(e.id)} className="text-slate-300 hover:text-rose-500 transition-colors p-1.5 rounded-md hover:bg-rose-50"><Icon name="trash-2" size={16}/></button>
+                                                        <td className="px-6 py-4 text-slate-500 font-medium">{e.note || '-'}</td>
+                                                        <td className="px-6 py-4 text-right font-black text-rose-600 text-lg">-{formatNum(e.amount)}</td>
+                                                        <td className="px-6 py-4 text-right text-xs font-bold text-slate-400">{e.timestamp}</td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <button onClick={() => handleDeleteExpense(e.id)} className="w-10 h-10 inline-flex items-center justify-center text-slate-400 bg-white hover:text-rose-600 border border-slate-100 hover:bg-rose-50 hover:border-rose-200 transition-all rounded-xl shadow-sm hover:shadow-md"><Icon name="trash-2" size={18}/></button>
                                                         </td>
                                                     </tr>
                                                 ))}
-                                                {expenses.length === 0 && <tr><td colSpan="5" className="py-12 text-center text-slate-400 font-medium">ຍັງບໍ່ມີຂໍ້ມູນລາຍຈ່າຍ</td></tr>}
+                                                {expenses.length === 0 && <tr><td colSpan="5" className="py-16 text-center text-slate-400 font-extrabold">ຍັງບໍ່ມີຂໍ້ມູນລາຍຈ່າຍ 💳</td></tr>}
                                             </tbody>
                                             {expenses.length > 0 && (
-                                                <tfoot className="bg-slate-50 border-t border-slate-200">
+                                                <tfoot className="bg-rose-50/50 border-t-2 border-white backdrop-blur-md">
                                                     <tr>
-                                                        <td colSpan="2" className="px-5 py-4 text-right uppercase text-xs font-bold text-slate-500">ລວມລາຍຈ່າຍທັງໝົດ</td>
-                                                        <td className="px-5 py-4 text-right font-black text-rose-600 text-lg">-{formatNum(totalExpenses)}</td>
+                                                        <td colSpan="2" className="px-6 py-5 text-right uppercase text-xs font-black text-rose-800">ລວມລາຍຈ່າຍທັງໝົດ:</td>
+                                                        <td className="px-6 py-5 text-right font-black text-rose-600 text-2xl drop-shadow-sm">-{formatNum(totalExpenses)}</td>
                                                         <td colSpan="2"></td>
                                                     </tr>
                                                 </tfoot>
                                             )}
                                         </table>
                                     </div>
-                                    {/* Pagination for Expenses */}
                                     {expenses.length > visibleExpenses && (
-                                        <div className="p-4 bg-white border-t border-slate-100 flex justify-center">
-                                            <button onClick={() => setVisibleExpenses(prev => prev + 50)} className="px-6 py-2 bg-slate-50 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">ໂຫຼດເພີ່ມເຕີມ ({expenses.length - visibleExpenses})</button>
+                                        <div className="p-5 bg-white/40 border-t border-white flex justify-center">
+                                            <button onClick={() => setVisibleExpenses(prev => prev + 50)} className="px-8 py-3 bg-white text-slate-600 font-black text-xs rounded-2xl border border-slate-100 hover:bg-slate-50 hover:shadow-md transition-all hover:-translate-y-0.5">ໂຫຼດເພີ່ມເຕີມ ({expenses.length - visibleExpenses})</button>
                                         </div>
                                     )}
                                 </div>
@@ -690,71 +749,77 @@
                         )}
 
                         {activeTab === 'daily' && (
-                            <div className="space-y-6 animate-enter">
-                                <h2 className="text-2xl font-extrabold text-slate-800">ສະຫຼຸບຍອດຂາຍລາຍວັນ</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <div className="space-y-6 animate-pop">
+                                <h2 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3"><div className="p-2 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl text-white shadow-lg"><Icon name="bar-chart-3" size={24}/></div> ສະຫຼຸບຍອດຂາຍລາຍວັນ</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {dailyStats.map((day, i) => (
-                                        <div key={day.date} className="bg-white rounded-[1.5rem] p-5 shadow-soft border border-slate-200 hover:border-indigo-300 transition-all flex flex-col relative overflow-hidden group">
-                                            {i === 0 && <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>}
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="flex gap-3 items-center">
-                                                    <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors"><Icon name="calendar" size={18}/></div>
+                                        <div key={day.date} className="glass-card rounded-[2rem] p-6 shadow-glass hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col relative overflow-hidden group">
+                                            {i === 0 && <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-pink-500 to-indigo-500"></div>}
+                                            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-gradient-to-tl from-indigo-100/50 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                                            
+                                            <div className="flex justify-between items-start mb-5 relative z-10">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-indigo-400 group-hover:text-white group-hover:bg-gradient-to-br group-hover:from-indigo-500 group-hover:to-pink-500 shadow-sm transition-all duration-300"><Icon name="calendar-days" size={20}/></div>
                                                     <div>
-                                                        <h3 className="font-extrabold text-slate-800">{day.date}</h3>
-                                                        <p className="text-[11px] text-slate-400 font-semibold">{day.count} ລາຍການ</p>
+                                                        <h3 className="font-black text-slate-800 text-lg">{day.date}</h3>
+                                                        <p className="text-xs text-slate-500 font-bold mt-0.5 bg-white/60 inline-block px-2 py-0.5 rounded-md">{day.count} ອໍເດີ</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-0.5">ກຳໄລ</p>
-                                                    <p className="font-black text-emerald-500">+{formatNum(day.profit)}</p>
-                                                </div>
                                             </div>
-                                            <div className="mt-auto bg-slate-50/50 border border-slate-100 rounded-xl p-3 flex justify-between items-center">
-                                                <span className="text-xs font-bold text-slate-500">ຍອດຂາຍລວມ</span>
-                                                <span className="text-lg font-black text-slate-800">{formatNum(day.sales)} ₭</span>
+                                            
+                                            <div className="space-y-3 relative z-10">
+                                                <div className="flex justify-between items-end bg-white/60 p-3 rounded-xl border border-white">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase">ກຳໄລ</p>
+                                                    <p className="font-black text-emerald-500 text-lg">+{formatNum(day.profit)}</p>
+                                                </div>
+                                                <div className="bg-gradient-to-r from-indigo-50 to-pink-50 border border-white rounded-xl p-4 flex justify-between items-center shadow-sm">
+                                                    <span className="text-xs font-black text-indigo-800/60 uppercase">ຍອດຂາຍລວມ</span>
+                                                    <span className="text-xl font-black text-slate-800">{formatNum(day.sales)} <span className="text-sm text-slate-400">₭</span></span>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
-                                    {dailyStats.length === 0 && <div className="col-span-full text-center py-16 text-slate-400 font-medium bg-white rounded-2xl border border-dashed border-slate-200">ບໍ່ມີສະຖິຕິການຂາຍ</div>}
+                                    {dailyStats.length === 0 && <div className="col-span-full text-center py-20 text-slate-400 glass-card rounded-[2rem] border-dashed border-2 border-slate-300/50 font-extrabold text-lg">ຍັງບໍ່ມີສະຖິຕິການຂາຍເດີ້ 📊</div>}
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'history' && (
-                            <div className="space-y-6 animate-enter">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                    <h2 className="text-2xl font-extrabold text-slate-800">ປະຫວັດການຂາຍ</h2>
-                                    <button onClick={handleDeleteAllHistory} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-rose-600 border border-rose-200 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-rose-50 transition-all"><Icon name="trash-2" size={16}/> ລຶບປະຫວັດທັງໝົດ</button>
+                            <div className="space-y-6 animate-pop">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glass-panel p-5 rounded-[2rem]">
+                                    <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2"><Icon name="history" className="text-purple-500" /> ປະຫວັດການຂາຍ</h2>
+                                    <button onClick={handleDeleteAllHistory} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-rose-600 border border-rose-100 px-5 py-3 rounded-2xl font-black text-xs hover:bg-rose-50 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
+                                        <Icon name="trash-2" size={18}/> ລຶບປະຫວັດທັງໝົດ
+                                    </button>
                                 </div>
-                                <div className="bg-white rounded-[1.5rem] border border-slate-200 overflow-hidden shadow-soft">
+                                <div className="glass-card rounded-[2rem] border border-white overflow-hidden shadow-glass">
                                     <div className="overflow-x-auto custom-scroll">
                                         <table className="w-full text-left whitespace-nowrap">
-                                            <thead className="bg-slate-50/80 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-200">
-                                                <tr><th className="px-5 py-4">ເວລາ</th><th className="px-5 py-4">ລາຍການ</th><th className="px-5 py-4 text-right">ລາຄາຂາຍ</th><th className="px-5 py-4 text-right">ກຳໄລ</th><th className="px-5 py-4 text-center">ລຶບ</th></tr>
+                                            <thead className="bg-white/40 text-[11px] uppercase text-slate-500 font-extrabold border-b border-white">
+                                                <tr><th className="px-6 py-5">ເວລາ</th><th className="px-6 py-5">ລາຍການ</th><th className="px-6 py-5 text-right">ລາຄາຂາຍ</th><th className="px-6 py-5 text-right">ກຳໄລ</th><th className="px-6 py-5 text-center">ລຶບ</th></tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100 text-sm">
+                                            <tbody className="divide-y divide-white/40 text-sm">
                                                 {sales.slice(0, visibleHistory).map(s => (
-                                                    <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                                                        <td className="px-5 py-3 text-slate-400 font-medium text-[11px]">{s.timestamp}</td>
-                                                        <td className="px-5 py-3 font-semibold text-slate-800">
+                                                    <tr key={s.id} className="hover:bg-white/60 transition-colors group">
+                                                        <td className="px-6 py-4 text-slate-500 font-bold text-xs">{s.timestamp}</td>
+                                                        <td className="px-6 py-4 font-extrabold text-slate-800 text-base">
                                                             {s.productName}
-                                                            <span className={`ml-2 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold border ${s.type === 'retail' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{s.type}</span>
+                                                            <span className={`ml-3 text-[10px] px-2 py-1 rounded-lg uppercase font-black border shadow-sm ${s.type === 'retail' ? 'bg-pink-50 text-pink-600 border-pink-200' : 'bg-cyan-50 text-cyan-600 border-cyan-200'}`}>{s.type === 'retail' ? 'ຂາຍຍ່ອຍ' : 'ລາຄາສົ່ງ'}</span>
                                                         </td>
-                                                        <td className="px-5 py-3 text-right font-bold text-slate-900">{formatNum(s.price)}</td>
-                                                        <td className="px-5 py-3 text-right font-black text-emerald-500">+{formatNum(s.profit)}</td>
-                                                        <td className="px-5 py-3 text-center">
-                                                            <button onClick={() => handleDeleteSale(s.id)} className="text-slate-300 hover:text-rose-500 p-1.5 rounded-md hover:bg-rose-50 transition-colors"><Icon name="trash-2" size={16}/></button>
+                                                        <td className="px-6 py-4 text-right font-black text-slate-900">{formatNum(s.price)}</td>
+                                                        <td className="px-6 py-4 text-right font-black text-emerald-500 bg-emerald-50/30">+{formatNum(s.profit)}</td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <button onClick={() => handleDeleteSale(s.id)} className="w-10 h-10 inline-flex items-center justify-center text-slate-400 bg-white hover:text-rose-600 border border-slate-100 hover:bg-rose-50 hover:border-rose-200 transition-all rounded-xl shadow-sm hover:shadow-md"><Icon name="trash-2" size={18}/></button>
                                                         </td>
                                                     </tr>
                                                 ))}
-                                                {sales.length === 0 && <tr><td colSpan="5" className="py-12 text-center text-slate-400 font-medium">ຍັງບໍ່ມີປະຫວັດການຂາຍ</td></tr>}
+                                                {sales.length === 0 && <tr><td colSpan="5" className="py-16 text-center text-slate-400 font-extrabold">ຍັງບໍ່ມີປະຫວັດການຂາຍ 🛒</td></tr>}
                                             </tbody>
                                         </table>
                                     </div>
-                                    {/* Pagination for Performance */}
                                     {sales.length > visibleHistory && (
-                                        <div className="p-4 bg-white border-t border-slate-100 flex justify-center">
-                                            <button onClick={() => setVisibleHistory(prev => prev + 50)} className="px-6 py-2 bg-slate-50 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">ໂຫຼດເພີ່ມເຕີມ ({sales.length - visibleHistory})</button>
+                                        <div className="p-5 bg-white/40 border-t border-white flex justify-center">
+                                            <button onClick={() => setVisibleHistory(prev => prev + 50)} className="px-8 py-3 bg-white text-slate-600 font-black text-xs rounded-2xl border border-slate-100 hover:bg-slate-50 hover:shadow-md transition-all hover:-translate-y-0.5">ໂຫຼດເພີ່ມເຕີມ ({sales.length - visibleHistory})</button>
                                         </div>
                                     )}
                                 </div>
@@ -763,41 +828,50 @@
                     </main>
 
                     {/* Mobile Bottom Nav */}
-                    <div className="md:hidden fixed bottom-4 left-4 right-4 bg-white/90 backdrop-blur-xl border border-slate-200/50 p-2 rounded-2xl shadow-xl flex justify-between items-center z-40">
-                        {['dashboard', 'sales', 'stock', 'expenses', 'history'].map(tab => (
-                            <button key={tab} onClick={() => setActiveTab(tab)} className={`p-2.5 rounded-xl transition-all flex flex-col items-center gap-1 w-full ${activeTab === tab ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>
-                                <div className={`${activeTab === tab ? 'bg-indigo-50 p-1.5 rounded-lg' : ''}`}>
-                                    <Icon name={tab === 'dashboard' ? 'layout-dashboard' : tab === 'sales' ? 'shopping-cart' : tab === 'stock' ? 'package' : tab === 'expenses' ? 'wallet' : 'history'} size={22} />
+                    <div className="md:hidden fixed bottom-4 left-4 right-4 glass-panel border border-white p-2 rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] flex justify-between items-center z-40 pb-2">
+                        {[
+                            { id: 'dashboard', icon: 'layout-dashboard', color: 'text-indigo-600', bg: 'bg-indigo-100' },
+                            { id: 'sales', icon: 'shopping-cart', color: 'text-pink-600', bg: 'bg-pink-100' },
+                            { id: 'stock', icon: 'package', color: 'text-amber-500', bg: 'bg-amber-100' },
+                            { id: 'expenses', icon: 'wallet', color: 'text-emerald-500', bg: 'bg-emerald-100' },
+                            { id: 'history', icon: 'history', color: 'text-violet-600', bg: 'bg-violet-100' }
+                        ].map(tab => (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`p-3 rounded-2xl transition-all flex flex-col items-center justify-center w-full relative ${activeTab === tab.id ? tab.color : 'text-slate-400 hover:text-slate-600'}`}>
+                                <div className={`transition-all duration-300 ${activeTab === tab.id ? `${tab.bg} p-2.5 rounded-xl shadow-sm scale-110 -translate-y-2` : ''}`}>
+                                    <Icon name={tab.icon} size={24} />
                                 </div>
-                                {activeTab === tab && <div className="w-1 h-1 rounded-full bg-indigo-600 absolute bottom-1"></div>}
+                                {activeTab === tab.id && <div className={`w-1.5 h-1.5 rounded-full absolute bottom-1 ${tab.bg.replace('100', '500')}`}></div>}
                             </button>
                         ))}
                     </div>
 
                     {/* Custom Dialog */}
                     {dialog.isOpen && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-enter">
-                            <div className="bg-white rounded-[1.5rem] p-6 shadow-2xl max-w-sm w-full border border-slate-100">
-                                <h3 className="text-[1.15rem] font-extrabold text-slate-900 mb-2">
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-pop">
+                            <div className="glass-card rounded-[2rem] p-8 shadow-2xl max-w-sm w-full border border-white text-center">
+                                <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-5 shadow-lg ${dialog.type === 'alert' ? 'bg-gradient-to-br from-amber-300 to-orange-500 text-white' : dialog.type === 'confirm' ? 'bg-gradient-to-br from-indigo-400 to-pink-500 text-white' : 'bg-gradient-to-br from-slate-700 to-slate-900 text-white'}`}>
+                                    <Icon name={dialog.type === 'alert' ? 'bell' : dialog.type === 'confirm' ? 'help-circle' : 'lock'} size={32} />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-800 mb-2">
                                     {dialog.type === 'alert' ? 'ແຈ້ງເຕືອນ' : dialog.type === 'confirm' ? 'ຢືນຢັນການເຮັດວຽກ' : 'ຕ້ອງການລະຫັດຜ່ານ'}
                                 </h3>
-                                <p className="text-slate-500 text-sm mb-6 whitespace-pre-wrap">{dialog.message}</p>
+                                <p className="text-slate-500 text-sm font-medium mb-8 whitespace-pre-wrap">{dialog.message}</p>
                                 
                                 {dialog.type === 'prompt' && (
-                                    <input type="password" autoFocus className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-slate-700 outline-none focus:border-indigo-500 mb-5" value={dialog.inputValue} onChange={e => setDialog({...dialog, inputValue: e.target.value})} placeholder="ໃສ່ລະຫັດ..." />
+                                    <input type="password" autoFocus className="w-full bg-white/50 border border-white rounded-2xl p-4 font-black text-center text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 mb-6 shadow-sm" value={dialog.inputValue} onChange={e => setDialog({...dialog, inputValue: e.target.value})} placeholder="ໃສ່ລະຫັດ..." />
                                 )}
                                 
-                                <div className="flex justify-end gap-2.5">
-                                    {dialog.type !== 'alert' && <button onClick={closeDialog} className="px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors text-sm">ຍົກເລີກ</button>}
+                                <div className="flex justify-center gap-3">
+                                    {dialog.type !== 'alert' && <button onClick={closeDialog} className="flex-1 py-3.5 rounded-2xl font-black text-slate-600 bg-white hover:bg-slate-50 border border-slate-100 transition-all shadow-sm active:scale-95">ຍົກເລີກ</button>}
                                     <button onClick={() => { 
                                         const { type, onConfirm, inputValue } = dialog;
-                                        closeDialog(); // ປິດກ່ອງເກົ່າກ່ອນ
+                                        closeDialog(); 
                                         if (type === 'prompt') {
-                                            onConfirm && onConfirm(inputValue); // ແລ້ວຈຶ່ງສັ່ງເປີດກ່ອງໃໝ່
+                                            onConfirm && onConfirm(inputValue); 
                                         } else {
                                             onConfirm && onConfirm();
                                         }
-                                    }} className="px-5 py-2 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md text-sm">ຕົກລົງ</button>
+                                    }} className="flex-1 py-3.5 rounded-2xl font-black text-white bg-gradient-to-r from-indigo-500 to-pink-500 hover:shadow-glow-secondary transition-all shadow-md active:scale-95">ຕົກລົງ</button>
                                 </div>
                             </div>
                         </div>
@@ -805,42 +879,59 @@
 
                     {/* Modal: Product */}
                     {isModalOpen && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-enter">
-                            <div className="bg-white w-full max-w-lg rounded-[1.5rem] p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll border border-slate-100">
-                                <button onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 p-2 text-slate-400 bg-slate-50 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors"><Icon name="x" size={18}/></button>
-                                <h2 className="text-xl font-extrabold text-slate-900 mb-5">{editingProduct ? 'ແກ້ໄຂສິນຄ້າ' : 'ເພີ່ມສິນຄ້າໃໝ່'}</h2>
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-slate-500 uppercase">Game</label>
-                                            <input list="game-options" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-sm text-slate-700 outline-none focus:border-indigo-500 transition-colors" value={formData.game} onChange={e => setFormData({...formData, game: e.target.value})} placeholder="ເລືອກ ຫຼື ພິມ..." />
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-pop">
+                            <div className="glass-card w-full max-w-lg rounded-[2rem] p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll border border-white">
+                                <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 p-2.5 text-slate-400 bg-white rounded-full hover:bg-pink-50 hover:text-pink-600 transition-all shadow-sm"><Icon name="x" size={20}/></button>
+                                <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3"><Icon name={editingProduct ? 'edit-3' : 'plus-circle'} className="text-indigo-500"/> {editingProduct ? 'ແກ້ໄຂສິນຄ້າ' : 'ເພີ່ມສິນຄ້າໃໝ່'}</h2>
+                                
+                                <div className="flex bg-white/60 p-1.5 rounded-2xl mb-6 shadow-sm border border-white">
+                                    <button onClick={() => setFormData({...formData, productType: 'game'})} className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${formData.productType === 'game' || !formData.productType ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md scale-100' : 'text-slate-500 hover:text-slate-800'}`}>🎮 ແພັກເກມ (Game)</button>
+                                    <button onClick={() => setFormData({...formData, productType: 'topup'})} className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${formData.productType === 'topup' ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-md scale-100' : 'text-slate-500 hover:text-slate-800'}`}>📱 ບັດເຕີມເງິນ (Top-up)</button>
+                                </div>
+
+                                <div className="space-y-5">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-1">{formData.productType === 'topup' ? 'ເຄືອຂ່າຍ (Network)' : 'Game'}</label>
+                                            <input list="game-options" className="w-full bg-white/70 border border-white rounded-2xl p-3.5 font-bold text-sm text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 transition-all shadow-sm" value={formData.game} onChange={e => setFormData({...formData, game: e.target.value})} placeholder="ເລືອກ ຫຼື ພິມ..." />
                                             <datalist id="game-options">{categories.filter(c => c !== 'All').map(c => <option key={c} value={c} />)}</datalist>
-                                            <div className="flex flex-wrap gap-1 mt-1.5">{categories.filter(c => c !== 'All').map(c => (<button key={c} onClick={() => setFormData({...formData, game: c})} className="text-[9px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 font-bold hover:bg-indigo-100 hover:text-indigo-600 transition-colors">{c}</button>))}</div>
                                         </div>
-                                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">ຊື່ແພັກ (Pack Name)</label><input className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-sm text-slate-700 outline-none focus:border-indigo-500 transition-colors" value={formData.pack} onChange={e => setFormData({...formData, pack: e.target.value})} /></div>
+                                        <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">{formData.productType === 'topup' ? 'ຊື່ແພັກ / ມູນຄ່າ' : 'ຊື່ແພັກ (Pack Name)'}</label><input className="w-full bg-white/70 border border-white rounded-2xl p-3.5 font-bold text-sm text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 transition-all shadow-sm" value={formData.pack} onChange={e => setFormData({...formData, pack: e.target.value})} /></div>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase">ລິ້ງຮູບພາບ (ໃສ່ ຫຼື ບໍ່ໃສ່ກໍໄດ້)</label>
-                                        <div className="flex gap-2">
-                                            <input className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium text-sm text-slate-600 outline-none focus:border-indigo-500 transition-colors" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} placeholder="https://..." />
-                                            {formData.imageUrl && <img src={formData.imageUrl} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-slate-200 shadow-sm" />}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-1">ລິ້ງຮູບພາບ (ໃສ່ ຫຼື ບໍ່ໃສ່ກໍໄດ້)</label>
+                                        <div className="flex gap-3 items-center">
+                                            <input className="flex-1 bg-white/70 border border-white rounded-2xl p-3.5 font-medium text-sm text-slate-600 outline-none focus:ring-2 focus:ring-indigo-400 transition-all shadow-sm" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} placeholder="https://..." />
+                                            {formData.imageUrl && <img src={formData.imageUrl} alt="preview" className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md bg-white" />}
                                         </div>
                                     </div>
 
-                                    <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-3">
-                                        <div className="flex items-center gap-1.5 text-indigo-600 text-[10px] font-black uppercase tracking-wider"><Icon name="calculator" size={14}/> ຄິດໄລ່ຕົ້ນທຶນອັດຕະໂນມັດ</div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-1"><label className="text-[10px] font-bold text-indigo-500">ຈຳນວນເຄຣດິດ</label><input type="text" inputMode="decimal" placeholder="0.00" className="w-full bg-white border border-indigo-100/50 rounded-xl p-2.5 font-black text-slate-800 outline-none focus:border-indigo-400" value={formData.creditsUsed} onChange={e => { const val = e.target.value; if (/^[0-9]*[.,]?[0-9]*$/.test(val)) setFormData({...formData, creditsUsed: val}); }} /></div>
-                                            <div className="space-y-1"><label className="text-[10px] font-bold text-indigo-500">ເລດປັດຈຸບັນ (Rate)</label><input type="number" className="w-full bg-white border border-indigo-100/50 rounded-xl p-2.5 font-black text-slate-800 outline-none focus:border-indigo-400" value={formData.currentRate} onChange={e => setFormData({...formData, currentRate: Number(e.target.value)})} /></div>
+                                    {formData.productType === 'topup' ? (
+                                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-3xl border border-white shadow-sm space-y-4">
+                                            <div className="flex items-center justify-between"><div className="flex items-center gap-2 text-emerald-600 text-[10px] font-black uppercase tracking-wider bg-emerald-100/50 px-3 py-1.5 rounded-lg"><Icon name="percent" size={16}/> ຄິດໄລ່ຕົ້ນທຶນບັດເຕີມເງິນ</div></div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1.5"><label className="text-[10px] font-black text-emerald-500 ml-1">ມູນຄ່າໜ້າບັດ</label><input type="number" placeholder="10000" className="w-full bg-white border border-emerald-100 rounded-2xl p-3.5 font-black text-slate-800 outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm" value={formData.faceValue} onChange={e => setFormData({...formData, faceValue: e.target.value})} /></div>
+                                                <div className="space-y-1.5"><label className="text-[10px] font-black text-emerald-500 ml-1">ສ່ວນຫຼຸດ (%)</label><input type="number" placeholder="5" className="w-full bg-white border border-emerald-100 rounded-2xl p-3.5 font-black text-slate-800 outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm" value={formData.discountPercent} onChange={e => setFormData({...formData, discountPercent: e.target.value})} /></div>
+                                            </div>
+                                            <div className="flex justify-between items-center pt-3 border-t-2 border-emerald-100/50 mt-2"><span className="text-[10px] font-black text-emerald-500 uppercase">ຕົ້ນທຶນຫຼັງຫັກສ່ວນຫຼຸດ</span><span className="text-2xl font-black text-emerald-600 drop-shadow-sm">{formatNum(formData.cost)}</span></div>
                                         </div>
-                                        <div className="flex justify-between items-center pt-2 border-t border-indigo-200/50"><span className="text-[10px] font-bold text-indigo-500">ຕົ້ນທຶນລວມ</span><span className="text-xl font-black text-indigo-700">{formatNum(formData.cost)}</span></div>
+                                    ) : (
+                                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-3xl border border-white shadow-sm space-y-4">
+                                            <div className="flex items-center justify-between"><div className="flex items-center gap-2 text-indigo-600 text-[10px] font-black uppercase tracking-wider bg-indigo-100/50 px-3 py-1.5 rounded-lg"><Icon name="calculator" size={16}/> ຄິດໄລ່ຕົ້ນທຶນອັດຕະໂນມັດ</div></div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1.5"><label className="text-[10px] font-black text-indigo-500 ml-1">ຈຳນວນເຄຣດິດ</label><input type="text" inputMode="decimal" placeholder="0.00" className="w-full bg-white border border-indigo-100 rounded-2xl p-3.5 font-black text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm" value={formData.creditsUsed} onChange={e => { const val = e.target.value; if (/^[0-9]*[.,]?[0-9]*$/.test(val)) setFormData({...formData, creditsUsed: val}); }} /></div>
+                                                <div className="space-y-1.5"><label className="text-[10px] font-black text-indigo-500 ml-1">ເລດປັດຈຸບັນ (Rate)</label><input type="number" className="w-full bg-white border border-indigo-100 rounded-2xl p-3.5 font-black text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm" value={formData.currentRate} onChange={e => setFormData({...formData, currentRate: Number(e.target.value)})} /></div>
+                                            </div>
+                                            <div className="flex justify-between items-center pt-3 border-t-2 border-indigo-100/50 mt-2"><span className="text-[10px] font-black text-indigo-500 uppercase">ຕົ້ນທຶນລວມ</span><span className="text-2xl font-black text-indigo-600 drop-shadow-sm">{formatNum(formData.cost)}</span></div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">ລາຄາສົ່ງ</label><input type="number" className="w-full bg-white/70 border border-white rounded-2xl p-3.5 font-black text-slate-800 outline-none focus:ring-2 focus:ring-pink-400 shadow-sm transition-all" value={formData.wholesale} onChange={e => setFormData({...formData, wholesale: Number(e.target.value)})} /></div>
+                                        <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">ລາຄາຂາຍຍ່ອຍ</label><input type="number" className="w-full bg-white/70 border border-white rounded-2xl p-3.5 font-black text-slate-800 outline-none focus:ring-2 focus:ring-pink-400 shadow-sm transition-all" value={formData.retail} onChange={e => setFormData({...formData, retail: Number(e.target.value)})} /></div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">ລາຄາສົ່ງ</label><input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800 outline-none focus:border-indigo-500" value={formData.wholesale} onChange={e => setFormData({...formData, wholesale: Number(e.target.value)})} /></div>
-                                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">ລາຄາຂາຍຍ່ອຍ</label><input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800 outline-none focus:border-indigo-500" value={formData.retail} onChange={e => setFormData({...formData, retail: Number(e.target.value)})} /></div>
-                                    </div>
-                                    <button onClick={handleProductSave} className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95 text-sm mt-2">ບັນທຶກຂໍ້ມູນ</button>
+                                    <button onClick={handleProductSave} className={`w-full text-white py-4 rounded-2xl font-black shadow-lg transition-all active:scale-95 text-sm mt-4 tracking-wide ${formData.productType === 'topup' ? 'bg-gradient-to-r from-emerald-400 to-teal-500 hover:shadow-emerald-500/40' : 'bg-gradient-to-r from-indigo-500 to-pink-500 hover:shadow-pink-500/40'}`}>✨ ບັນທຶກຂໍ້ມູນ</button>
                                 </div>
                             </div>
                         </div>
@@ -848,14 +939,18 @@
 
                     {/* Modal: Bulk Edit */}
                     {isBulkModalOpen && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-enter">
-                            <div className="bg-white w-full max-w-sm rounded-[1.5rem] p-6 shadow-2xl relative border border-slate-100">
-                                <button onClick={() => setIsBulkModalOpen(false)} className="absolute top-5 right-5 p-2 text-slate-400 bg-slate-50 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors"><Icon name="x" size={18}/></button>
-                                <div className="mb-5"><h2 className="text-xl font-extrabold text-slate-900">ປ່ຽນເລດຍົກໝວດ</h2><p className="text-slate-500 text-xs mt-1">ລະບົບຈະຄິດໄລ່ຕົ້ນທຶນໃໝ່ອັດຕະໂນມັດ</p></div>
-                                <div className="space-y-4">
-                                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 uppercase">ເລືອກໝວດໝູ່</label><div className="flex flex-wrap gap-1.5">{categories.filter(c => c !== 'All').map(c => (<button key={c} onClick={() => setBulkData({...bulkData, category: c})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${bulkData.category === c ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}>{c}</button>))}</div></div>
-                                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 uppercase">ປ້ອນເລດໃໝ່</label><input type="number" placeholder="ຕົວຢ່າງ: 420" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-black text-lg text-center text-slate-800 outline-none focus:border-indigo-500 focus:bg-white transition-colors" value={bulkData.newRate} onChange={e => setBulkData({...bulkData, newRate: e.target.value})} /></div>
-                                    <button onClick={handleBulkUpdate} className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all active:scale-95 flex justify-center items-center gap-2 text-sm">ອັບເດດທັງໝົດ</button>
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-pop">
+                            <div className="glass-card w-full max-w-sm rounded-[2rem] p-7 shadow-2xl relative border border-white">
+                                <button onClick={() => setIsBulkModalOpen(false)} className="absolute top-5 right-5 p-2.5 text-slate-400 bg-white rounded-full hover:bg-pink-50 hover:text-pink-600 transition-all shadow-sm"><Icon name="x" size={20}/></button>
+                                <div className="mb-6">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center text-indigo-500 mb-4 shadow-sm border border-white"><Icon name="layers" size={24}/></div>
+                                    <h2 className="text-2xl font-black text-slate-800">ປ່ຽນເລດຍົກໝວດ</h2>
+                                    <p className="text-slate-500 text-xs mt-1.5 font-bold">ລະບົບຈະຄິດໄລ່ຕົ້ນທຶນໃໝ່ອັດຕະໂນມັດ</p>
+                                </div>
+                                <div className="space-y-5">
+                                    <div className="space-y-2"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">ເລືອກໝວດໝູ່</label><div className="flex flex-wrap gap-2">{categories.filter(c => c !== 'All').map(c => (<button key={c} onClick={() => setBulkData({...bulkData, category: c})} className={`px-4 py-2 rounded-xl text-xs font-black transition-all border ${bulkData.category === c ? 'bg-indigo-600 text-white border-indigo-600 shadow-md scale-105' : 'bg-white/70 text-slate-600 border-white hover:border-indigo-200 shadow-sm'}`}>{c}</button>))}</div></div>
+                                    <div className="space-y-2"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">ປ້ອນເລດໃໝ່</label><input type="number" placeholder="ຕົວຢ່າງ: 420" className="w-full bg-white/80 border border-white rounded-2xl p-4 font-black text-xl text-center text-indigo-600 outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner" value={bulkData.newRate} onChange={e => setBulkData({...bulkData, newRate: e.target.value})} /></div>
+                                    <button onClick={handleBulkUpdate} className="w-full bg-slate-800 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-slate-900 hover:shadow-slate-900/30 transition-all active:scale-95 flex justify-center items-center gap-2 text-sm">ອັບເດດທັງໝົດ 🚀</button>
                                 </div>
                             </div>
                         </div>
@@ -863,23 +958,27 @@
 
                     {/* Modal: Add Expense */}
                     {isExpenseModalOpen && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-enter">
-                            <div className="bg-white w-full max-w-sm rounded-[1.5rem] p-6 shadow-2xl relative border border-slate-100">
-                                <button onClick={() => setIsExpenseModalOpen(false)} className="absolute top-5 right-5 p-2 text-slate-400 bg-slate-50 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors"><Icon name="x" size={18}/></button>
-                                <div className="mb-5"><h2 className="text-xl font-extrabold text-slate-900">ເພີ່ມລາຍຈ່າຍ</h2><p className="text-slate-500 text-xs mt-1">ບັນທຶກຄ່າໃຊ້ຈ່າຍໃໝ່</p></div>
-                                <div className="space-y-3">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase">ໝວດໝູ່</label>
-                                        <div className="flex flex-wrap gap-1.5 mb-1">
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-pop">
+                            <div className="glass-card w-full max-w-sm rounded-[2rem] p-7 shadow-2xl relative border border-white">
+                                <button onClick={() => setIsExpenseModalOpen(false)} className="absolute top-5 right-5 p-2.5 text-slate-400 bg-white rounded-full hover:bg-rose-50 hover:text-rose-600 transition-all shadow-sm"><Icon name="x" size={20}/></button>
+                                <div className="mb-6">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl flex items-center justify-center text-rose-500 mb-4 shadow-sm border border-white"><Icon name="wallet" size={24}/></div>
+                                    <h2 className="text-2xl font-black text-slate-800">ເພີ່ມລາຍຈ່າຍ</h2>
+                                    <p className="text-slate-500 text-xs mt-1.5 font-bold">ບັນທຶກຄ່າໃຊ້ຈ່າຍໃໝ່</p>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-1">ໝວດໝູ່</label>
+                                        <div className="flex flex-wrap gap-2 mb-2">
                                             {expenseCategories.map(c => (
-                                                <button key={c} onClick={() => setExpenseForm({...expenseForm, category: c})} className={`text-[10px] px-2.5 py-1 rounded-md font-bold transition-colors ${expenseForm.category === c ? 'bg-rose-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600'}`}>{c}</button>
+                                                <button key={c} onClick={() => setExpenseForm({...expenseForm, category: c})} className={`text-[10px] px-3 py-1.5 rounded-xl font-black transition-all ${expenseForm.category === c ? 'bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-md scale-105' : 'bg-white/70 text-slate-600 border border-white hover:border-rose-200 shadow-sm'}`}>{c}</button>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">ຫົວຂໍ້</label><input className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-sm text-slate-700 outline-none focus:border-rose-500 transition-colors" value={expenseForm.title} onChange={e => setExpenseForm({...expenseForm, title: e.target.value})} placeholder="ຕົວຢ່າງ: ຄ່າເນັດ..." /></div>
-                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">ຈຳນວນເງິນ</label><input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-black text-sm text-slate-800 outline-none focus:border-rose-500 transition-colors" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} /></div>
-                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">ໝາຍເຫດ</label><input className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium text-sm text-slate-600 outline-none focus:border-rose-500 transition-colors" value={expenseForm.note} onChange={e => setExpenseForm({...expenseForm, note: e.target.value})} /></div>
-                                    <button onClick={handleAddExpense} className="w-full bg-rose-500 text-white py-3 rounded-xl font-bold shadow-md shadow-rose-200 hover:bg-rose-600 transition-all active:scale-95 text-sm mt-2">ບັນທຶກລາຍຈ່າຍ</button>
+                                    <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">ຫົວຂໍ້</label><input className="w-full bg-white/80 border border-white rounded-2xl p-3.5 font-bold text-sm text-slate-800 outline-none focus:ring-2 focus:ring-rose-400 transition-all shadow-sm" value={expenseForm.title} onChange={e => setExpenseForm({...expenseForm, title: e.target.value})} placeholder="ຕົວຢ່າງ: ຄ່າເນັດ..." /></div>
+                                    <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">ຈຳນວນເງິນ</label><input type="number" className="w-full bg-white/80 border border-white rounded-2xl p-3.5 font-black text-lg text-rose-600 outline-none focus:ring-2 focus:ring-rose-400 transition-all shadow-inner" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} /></div>
+                                    <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-500 uppercase ml-1">ໝາຍເຫດ</label><input className="w-full bg-white/80 border border-white rounded-2xl p-3.5 font-medium text-sm text-slate-600 outline-none focus:ring-2 focus:ring-rose-400 transition-all shadow-sm" value={expenseForm.note} onChange={e => setExpenseForm({...expenseForm, note: e.target.value})} /></div>
+                                    <button onClick={handleAddExpense} className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white py-4 rounded-2xl font-black shadow-lg hover:shadow-rose-500/40 transition-all active:scale-95 text-sm mt-4 tracking-wide">💸 ບັນທຶກລາຍຈ່າຍ</button>
                                 </div>
                             </div>
                         </div>
@@ -888,16 +987,18 @@
             );
         };
 
-        const StatCard = ({ label, value, icon, color, isMoney = true }) => {
-            const colors = { 
-                indigo: 'bg-indigo-50 text-indigo-600', 
-                emerald: 'bg-emerald-50 text-emerald-600', 
-                orange: 'bg-orange-50 text-orange-600' 
-            };
+        const StatCard = ({ label, value, icon, gradient, isMoney = true, subtext }) => {
             return (
-                <div className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-soft flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[color]}`}><Icon name={icon} size={24} /></div>
-                    <div><p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</p><p className="text-2xl font-extrabold text-slate-800 mt-0.5">{formatNum(value)}{isMoney && <span className="text-sm text-slate-400 font-bold ml-1">₭</span>}</p></div>
+                <div className="glass-card p-6 rounded-[2rem] shadow-glass flex items-center gap-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+                    <div className={`absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br ${gradient} rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500`}></div>
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${gradient} text-white shadow-md group-hover:scale-110 transition-transform duration-300 relative z-10`}>
+                        <Icon name={icon} size={28} />
+                    </div>
+                    <div className="relative z-10">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+                        <p className="text-3xl font-black text-slate-800 mt-1 drop-shadow-sm">{formatNum(value)}{isMoney && <span className="text-lg text-slate-400 font-bold ml-1">₭</span>}</p>
+                        {subtext && <p className="text-[10px] text-slate-500 mt-1.5 bg-white/60 inline-block px-2 py-0.5 rounded-lg border border-white font-bold">{subtext}</p>}
+                    </div>
                 </div>
             )
         }
