@@ -150,9 +150,11 @@
             // Auth & Initial Load
             useEffect(() => {
                 auth.signInAnonymously().catch(e => setAuthError(e.message));
-                return auth.onAuthStateChanged(u => {
+                const unsubscribe = auth.onAuthStateChanged(u => {
                     if(u) { setUser(u); setAuthError(null); }
+                    setLoading(false);
                 });
+                return unsubscribe;
             }, []);
 
             // Data Sync
@@ -161,7 +163,6 @@
                 
                 const unsubProd = db.collection('products').onSnapshot(s => {
                     setProducts(s.docs.map(d => ({ id: d.id, ...d.data() })));
-                    setLoading(false);
                 });
                 
                 const unsubSales = db.collection('sales').orderBy('createdAt', 'desc').onSnapshot(s => {
@@ -196,7 +197,7 @@
                 }
             }, [formData.creditsUsed, formData.currentRate, formData.faceValue, formData.discountPercent, formData.productType]);
 
-            // Handlers
+            // App Handlers
             const handleMakeSale = async (product, type) => {
                 if (!user) return;
                 const price = type === 'retail' ? product.retail : product.wholesale;
@@ -376,8 +377,9 @@
                 return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 5);
             }, [sales]);
 
+            // Rendering States
             if (authError) return <div className="h-screen flex items-center justify-center bg-rose-50 text-rose-600 p-10 font-bold">{authError}</div>;
-            if (loading && !products.length) return <div className="h-screen flex items-center justify-center"><div className="w-16 h-16 border-4 border-indigo-200 border-t-pink-500 rounded-full animate-spin shadow-glow-secondary"></div></div>;
+            if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-16 h-16 border-4 border-indigo-200 border-t-pink-500 rounded-full animate-spin shadow-glow-secondary"></div></div>;
 
             return (
                 <div className="flex min-h-screen">
@@ -515,7 +517,7 @@
                         )}
 
                         {activeTab === 'sales' && (
-                            <div className="animate-pop flex flex-col h-[calc(100vh-6rem)] md:h-auto gap-4">
+                            <div className="animate-pop space-y-4">
                                 <div className="flex flex-col gap-4 sticky top-0 bg-white/40 backdrop-blur-2xl py-3 z-10 -mx-4 px-4 sm:mx-0 sm:px-0 rounded-b-3xl sm:rounded-3xl shadow-sm border border-white">
                                     <div className="flex flex-col sm:flex-row gap-3">
                                         <div className="relative flex-1 group">
@@ -538,10 +540,12 @@
                                             <Icon name="chevron-down" size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"/>
                                         </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-2.5 pb-1">
+                                    
+                                    {/* HORIZONTAL SCROLL FOR CATEGORIES (ແກ້ໄຂບັນຫາກິນພື້ນທີ່ໜ້າຈໍມືຖື) */}
+                                    <div className="flex overflow-x-auto gap-2.5 pb-2 hide-scroll items-center snap-x">
                                         {categories.map(c => (
                                             <button key={c} onClick={() => setSelectedCategory(c)} 
-                                                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-300 transform hover:-translate-y-1 shadow-sm border ${
+                                                className={`flex-shrink-0 snap-start flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all duration-300 transform hover:-translate-y-1 shadow-sm border ${
                                                     selectedCategory === c 
                                                     ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-transparent shadow-glow-secondary' 
                                                     : 'bg-white/80 text-slate-600 border-white hover:border-indigo-200 hover:bg-white hover:shadow-md'
@@ -556,7 +560,9 @@
                                         ))}
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 pb-24 md:pb-6 overflow-y-auto custom-scroll flex-1 pt-2">
+                                
+                                {/* PRODUCT GRID */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 pb-24 md:pb-6 pt-2">
                                     {sortedSalesProducts.map(p => (
                                         <div key={p.id} className="glass-card p-5 rounded-[1.5rem] shadow-glass hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group flex flex-col relative overflow-hidden">
                                             {/* decorative blob */}
@@ -613,10 +619,10 @@
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2.5 pb-2">
+                                <div className="flex overflow-x-auto gap-2.5 pb-2 hide-scroll items-center snap-x">
                                     {categories.map(c => (
                                         <button key={c} onClick={() => setStockCategory(c)} 
-                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-300 shadow-sm border ${
+                                            className={`flex-shrink-0 snap-start flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all duration-300 shadow-sm border ${
                                                 stockCategory === c 
                                                 ? 'bg-slate-800 text-white border-slate-700 shadow-lg scale-105' 
                                                 : 'bg-white/80 text-slate-600 border-white hover:border-slate-300 hover:bg-white hover:-translate-y-0.5'
